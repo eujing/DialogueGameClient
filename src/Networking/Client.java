@@ -16,7 +16,7 @@ public class Client {
 	private ObjectInputStream inFromServer;
 	private ObjectOutputStream outToServer;
 	private ClientMessageHandler msgHandler;
-	private GameEngine gEngine;
+	public GameEngine gEngine;
 
 	public Client (final String name, String ipAddress, short port, IUpdatable updatable) {
 		try {

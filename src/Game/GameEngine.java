@@ -14,19 +14,18 @@ public class GameEngine {
 		this.currentTurn = null;
 		this.root = null;
 		this.searchQueue = new LinkedList <> ();
-		
-		//createTestTree ();
-		//saveTree ();
-		
-		//this.root = readTree ();
-		//saveTree ();
 	}
 	
-	private void createTestTree () {
+	public void setRoot (DialogueNode node) {
+		this.root = node;
 	}
 	
 	//Breadth first search
 	public DialogueNode getNode (int id) {
+		if (id == 0) {
+			return null;
+		}
+		
 		this.searchQueue.clear ();
 		this.searchQueue.add (this.root);
 		
@@ -37,8 +36,8 @@ public class GameEngine {
 			if (current.id == id) {
 				return current;
 			}
-			else if (!current.children.isEmpty ()) {
-				for (DialogueNode node : current.children) {
+			else if (!current.childrenNodes.isEmpty ()) {
+				for (DialogueNode node : current.childrenNodes) {
 					this.searchQueue.add (node);
 				}
 			}

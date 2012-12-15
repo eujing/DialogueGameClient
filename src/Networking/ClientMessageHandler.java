@@ -39,7 +39,7 @@ public class ClientMessageHandler {
 			public void execute (Message message) {
 				DialogueNode node = (DialogueNode) message.data;
 				DialogueNode parentNode = gEngine.getNode(node.parentId);
-				parentNode.children.add(node);
+				parentNode.childrenNodes.add(node);
 			}
 		});
 	}
