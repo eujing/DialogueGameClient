@@ -2,7 +2,6 @@ package GUI;
 
 import Core.DialogueNode;
 import java.awt.BorderLayout;
-import java.util.Collections;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTree;
@@ -28,6 +27,7 @@ public class DynamicTree extends JPanel {
 		this.tree.getSelectionModel ().setSelectionMode (TreeSelectionModel.SINGLE_TREE_SELECTION);
 		this.tree.setShowsRootHandles (true);
 		this.tree.setRootVisible (true);
+		this.tree.setRowHeight (0);
 		
 		this.add (new JScrollPane (tree), BorderLayout.CENTER);
 		
@@ -64,8 +64,6 @@ public class DynamicTree extends JPanel {
 	}
 	
 	public void addChild (DialogueNode parent, DialogueNode child) {
-		parent.childrenNodes.add (child);
-		Collections.sort (parent.childrenNodes);
 		this.treeModel.insertNodeInto (child, parent, parent.childrenNodes.indexOf (child));
 		this.tree.scrollPathToVisible (new TreePath (child.getPath ()));
 	}

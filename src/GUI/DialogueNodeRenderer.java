@@ -1,7 +1,9 @@
 package GUI;
 
 import Core.DialogueNode;
+import java.awt.Color;
 import java.awt.Component;
+import javax.swing.BorderFactory;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
@@ -22,13 +24,13 @@ public class DialogueNodeRenderer implements TreeCellRenderer {
 		if (value != null && value instanceof DefaultMutableTreeNode) {
 			if (value instanceof DialogueNode) {
 				DialogueNode dNode = (DialogueNode) value;
+				dNode.gPanel.setBorder (BorderFactory.createLineBorder (Color.black));
 				comp = dNode.gPanel;
 			}
 		}
 		
 		if (comp == null) {
 			comp = defaultRenderer.getTreeCellRendererComponent (tree, value, leaf, expanded, leaf, row, hasFocus);
-			//System.out.println ("oh no");
 		}
 
 		return comp;

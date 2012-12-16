@@ -1,8 +1,12 @@
 package Networking;
 
-
+import Core.DialogueNode;
+import Core.Logger;
 import Core.Message;
+import Core.MessageHandler;
+import Core.MessageListener;
 import Game.GameEngine;
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
@@ -15,61 +19,91 @@ public class Client {
 	private Thread listenThread;
 	private ObjectInputStream inFromServer;
 	private ObjectOutputStream outToServer;
-	private ClientMessageHandler msgHandler;
+	private MessageHandler msgHandler;
 	public GameEngine gEngine;
 
-	public Client (final String name, String ipAddress, short port, IUpdatable updatable) {
+	public Client (final String name, String ipAddress, short port) {
 		try {
 			this.name = name;
 			System.out.println ("Connecting to server...");
 			this.clientSocket = new Socket (ipAddress, port);
 			this.outToServer = new ObjectOutputStream (this.clientSocket.getOutputStream ());
-			this.outToServer.flush();
+			this.outToServer.flush ();
 			this.inFromServer = new ObjectInputStream (this.clientSocket.getInputStream ());
 			this.gEngine = new GameEngine ();
-			this.msgHandler = new ClientMessageHandler (this, updatable, this.gEngine);
+			this.msgHandler = new MessageHandler ();
 
 			//Send info here
-			logDEBUG ("Sending info to server");
+			Logger.logDebug ("Sending info to server");
 			sendData ("info", name);
-			logDEBUG ("Info sent!");
+			Logger.logDebug ("Info sent!");
 
-			this.listenThread = new Thread (new Runnable () {
-				private Message msg;
-
+			this.msgHandler.registerMessageListener ("exit", new MessageListener () {
 				@Override
-				public void run () {
-					try {
-						System.out.println ("Listening...");
-						while (true) {
-							msg = Message.cast(inFromServer.readObject());
-
-							//Handle message
-							if (msg != null) {
-								msgHandler.response.get (msg.tag).execute (msg);
-							}
-							else {
-								System.out.println ("Invalid message from server");
-							}
-						}
-					}
-					catch (Exception ex) {
-						logDEBUG ("Disconnecting");
-					}
-					finally {
-						disconnect ();
-					}
+				public void messageReceived (Message msg) {
+					disconnect ();
 				}
 			});
 
+			this.msgHandler.registerMessageListener ("response", new MessageListener () {
+				@Override
+				public void messageReceived (Message msg) {
+					DialogueNode node = (DialogueNode) msg.data;
+					gEngine.addDialogueNode (node);
+				}
+			});
+			
+			this.msgHandler.registerMessageListener ("sendResponse", new MessageListener () {
+				@Override
+				public void messageReceived (Message msg) {
+					DialogueNode node = (DialogueNode) msg.data;
+					node.playerName = name;
+					sendData ("response", node);
+				}
+			});
+
+			this.listenThread = createListenThread ();
+
 		}
 		catch (Exception ex) {
-			System.out.println ("Client: " + ex.getMessage ());
+			Logger.logDebug ("Client: " + ex.getMessage ());
 		}
 	}
 
+	private Thread createListenThread () {
+		return new Thread (new Runnable () {
+			private Message msg;
+
+			@Override
+			public void run () {
+				try {
+					System.out.println ("Listening...");
+					while (true) {
+						msg = Message.cast (inFromServer.readObject ());
+
+						//Handle message
+						if (msg != null) {
+							msgHandler.submitMessage (msg);
+						}
+						else {
+							Logger.logDebug ("Invalid message from server");
+						}
+					}
+				}
+				catch (IOException | ClassNotFoundException ex) {
+					Logger.logDebug ("Disconnecting");
+				}
+				finally {
+					disconnect ();
+				}
+			}
+		});
+	}
+
 	public void startListening () {
-		this.listenThread.start ();
+		if (this.listenThread != null) {
+			this.listenThread.start ();
+		}
 	}
 
 	public final void disconnect () {
@@ -80,7 +114,7 @@ public class Client {
 			this.outToServer.close ();
 		}
 		catch (Exception ex) {
-			System.out.println ("disconnect: " + ex.getMessage ());
+			Logger.logDebug ("disconnect: " + ex.getMessage ());
 		}
 		finally {
 			System.exit (0);
@@ -89,17 +123,11 @@ public class Client {
 
 	public final void sendData (String type, Object data) {
 		try {
-			this.outToServer.writeObject(new Message (type, this.name, data));
+			this.outToServer.writeObject (new Message (type, this.name, data));
 			this.outToServer.flush ();
 		}
 		catch (Exception ex) {
-			System.out.println (ex.getMessage ());
-		}
-	}
-
-	private void logDEBUG (String msg) {
-		if (DEBUG) {
-			System.out.println (msg);
+			Logger.logDebug (ex.getMessage ());
 		}
 	}
 }
