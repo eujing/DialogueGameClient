@@ -1,6 +1,7 @@
 package GUI;
 
 import Core.DialogueNode;
+import Core.GamePanel;
 import java.awt.Color;
 import java.awt.Component;
 import javax.swing.BorderFactory;
@@ -23,9 +24,9 @@ public class DialogueNodeRenderer implements TreeCellRenderer {
 
 		if (value != null && value instanceof DefaultMutableTreeNode) {
 			if (value instanceof DialogueNode) {
-				DialogueNode dNode = (DialogueNode) value;
-				dNode.gPanel.setBorder (BorderFactory.createLineBorder (Color.black));
-				comp = dNode.gPanel;
+				GamePanel gPanel = new GamePanel ((DialogueNode) value);
+				gPanel.setBorder (BorderFactory.createLineBorder (Color.black));
+				comp = gPanel;
 			}
 		}
 		

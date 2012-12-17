@@ -1,6 +1,7 @@
 package Game;
 
 import Core.DialogueNode;
+import Core.MessageHandler;
 import Core.ResponseHandler;
 import Core.XmlReader;
 import Core.XmlWriter;
@@ -10,12 +11,14 @@ import java.util.LinkedList;
 
 public class GameEngine {
 	private DynamicTree tree;
+	private MessageHandler msgHandler;
 	private String currentTurn;
 	private DialogueNode root;
 	private LinkedList<DialogueNode> searchQueue;
 
-	public GameEngine () {
+	public GameEngine (MessageHandler msgHandler) {
 		this.tree = new DynamicTree ();
+		this.msgHandler = msgHandler;
 		this.currentTurn = null;
 		this.root = null;
 		this.searchQueue = new LinkedList<> ();
@@ -23,11 +26,11 @@ public class GameEngine {
 	}
 	
 	private void createTestTree () {
-		DialogueNode pRoot = new DialogueNode (0, "Teacher", "SEED", ResponseHandler.Response.QUESTION); //1
-		DialogueNode p1_1 = new DialogueNode (1, "P1", "CHALLENGE_1", ResponseHandler.Response.CHALLENGE);//2
-		DialogueNode p2_1 = new DialogueNode (1, "P2", "CHALLENGE_1", ResponseHandler.Response.CHALLENGE);//3
-		DialogueNode p1_2 = new DialogueNode (3, "P1", "CHALLENGE_2", ResponseHandler.Response.CHALLENGE);//4
-		DialogueNode p2_2 = new DialogueNode (1, "P2", "INFOMATION_1", ResponseHandler.Response.INFORMATION);//5
+		DialogueNode pRoot = new DialogueNode (0, "Teacher", "SEED", ResponseHandler.Response.QUESTION, this.msgHandler); //1
+		DialogueNode p1_1 = new DialogueNode (1, "P1", "CHALLENGE_1", ResponseHandler.Response.CHALLENGE, this.msgHandler);//2
+		DialogueNode p2_1 = new DialogueNode (1, "P2", "CHALLENGE_1", ResponseHandler.Response.CHALLENGE, this.msgHandler);//3
+		DialogueNode p1_2 = new DialogueNode (3, "P1", "CHALLENGE_2", ResponseHandler.Response.CHALLENGE, this.msgHandler);//4
+		DialogueNode p2_2 = new DialogueNode (1, "P2", "INFOMATION_1", ResponseHandler.Response.INFORMATION, this.msgHandler);//5
 
 		this.setRoot (pRoot);
 
@@ -92,6 +95,7 @@ public class GameEngine {
 	}
 
 	public DialogueNode readTree () {
-		return XmlReader.ReadTree ("tree.xml");
+		XmlReader reader = new XmlReader (this.msgHandler);
+		return reader.ReadTree ("tree.xml");
 	}
 }

@@ -28,6 +28,7 @@ public class GameFrame extends JFrame {
 				setVisible (true);
 			}
 		});
+		this.client.startListening ();
 	}
 
 	

@@ -25,13 +25,14 @@ public class Client {
 	public Client (final String name, String ipAddress, short port) {
 		try {
 			this.name = name;
-			System.out.println ("Connecting to server...");
+			Logger.log ("Connecting to server...");
 			this.clientSocket = new Socket (ipAddress, port);
 			this.outToServer = new ObjectOutputStream (this.clientSocket.getOutputStream ());
 			this.outToServer.flush ();
 			this.inFromServer = new ObjectInputStream (this.clientSocket.getInputStream ());
-			this.gEngine = new GameEngine ();
 			this.msgHandler = new MessageHandler ();
+			this.gEngine = new GameEngine (this.msgHandler);
+			
 
 			//Send info here
 			Logger.logDebug ("Sending info to server");
@@ -48,7 +49,9 @@ public class Client {
 			this.msgHandler.registerMessageListener ("response", new MessageListener () {
 				@Override
 				public void messageReceived (Message msg) {
+					Logger.logDebug ("Response from server");
 					DialogueNode node = (DialogueNode) msg.data;
+					node.msgHandler = msgHandler;
 					gEngine.addDialogueNode (node);
 				}
 			});
@@ -56,9 +59,9 @@ public class Client {
 			this.msgHandler.registerMessageListener ("sendResponse", new MessageListener () {
 				@Override
 				public void messageReceived (Message msg) {
-					DialogueNode node = (DialogueNode) msg.data;
-					node.playerName = name;
-					sendData ("response", node);
+					DialogueNode partialNode = (DialogueNode) msg.data;
+					partialNode.playerName = name;
+					sendData ("response", partialNode);
 				}
 			});
 
@@ -77,7 +80,7 @@ public class Client {
 			@Override
 			public void run () {
 				try {
-					System.out.println ("Listening...");
+					Logger.logDebug ("Listening...");
 					while (true) {
 						msg = Message.cast (inFromServer.readObject ());
 
@@ -128,6 +131,7 @@ public class Client {
 		}
 		catch (Exception ex) {
 			Logger.logDebug (ex.getMessage ());
+			ex.printStackTrace ();
 		}
 	}
 }
