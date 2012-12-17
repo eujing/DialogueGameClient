@@ -14,64 +14,68 @@ import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
 public class DynamicTree extends JPanel {
+
 	private DialogueNode root;
 	private DefaultTreeModel treeModel;
 	private JTree tree;
 
-	public DynamicTree () {
-		super (new BorderLayout ());
-		this.tree = new JTree ();
-		this.tree.setEditable (true);
-		this.tree.setCellEditor (new DialogueNodeEditor (this.tree, (DefaultTreeCellRenderer) this.tree.getCellRenderer ()));
-		this.tree.setCellRenderer (new DialogueNodeRenderer ());
-		this.tree.getSelectionModel ().setSelectionMode (TreeSelectionModel.SINGLE_TREE_SELECTION);
-		this.tree.setShowsRootHandles (true);
-		this.tree.setRootVisible (true);
-		this.tree.setRowHeight (0);
-		
-		this.add (new JScrollPane (tree), BorderLayout.CENTER);
-		
-		this.tree.addTreeSelectionListener (new TreeSelectionListener () {
+	public DynamicTree() {
+		initialize();
+
+		this.tree.addTreeSelectionListener(new TreeSelectionListener() {
 			@Override
-			public void valueChanged (TreeSelectionEvent e) {
-				final TreePath path = e.getNewLeadSelectionPath ();
+			public void valueChanged(TreeSelectionEvent e) {
+				final TreePath path = e.getNewLeadSelectionPath();
 				SwingUtilities.invokeLater(new Runnable() {
 					@Override
-                    public void run() {
-                        tree.startEditingAtPath(path);
-                    }
-                });
+					public void run() {
+						tree.startEditingAtPath(path);
+					}
+				});
 			}
 		});
 	}
-	
-	public void clear () {
+
+	private void initialize() {
+		this.setLayout(new BorderLayout());
+		this.tree = new JTree(new Object [] {});
+		this.tree.setEditable(true);
+		this.tree.setCellEditor(new DialogueNodeEditor(this.tree, (DefaultTreeCellRenderer) this.tree.getCellRenderer()));
+		this.tree.setCellRenderer(new DialogueNodeRenderer());
+		this.tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+		this.tree.setShowsRootHandles(true);
+		this.tree.setRootVisible(true);
+		this.tree.setRowHeight(0);
+
+		this.add(new JScrollPane(tree), BorderLayout.CENTER);
+	}
+
+	public void clear() {
 		if (this.root != null) {
-			this.root.removeAllChildren ();
+			this.root.removeAllChildren();
 		}
-		
+
 		if (this.treeModel != null) {
-			this.treeModel.reload ();
+			this.treeModel.reload();
 		}
 	}
-	
-	public void setRoot (DialogueNode root) {
-		clear ();
+
+	public void setRoot(DialogueNode root) {
+		clear();
 		this.root = root;
-		this.treeModel = new DefaultTreeModel (this.root);
-		this.tree.setModel (this.treeModel);
-		this.treeModel.reload ();
+		this.treeModel = new DefaultTreeModel(this.root);
+		this.tree.setModel(this.treeModel);
+		this.treeModel.reload();
 	}
-	
-	public void addChild (DialogueNode parent, DialogueNode child) {
-		this.treeModel.insertNodeInto (child, parent, parent.childrenNodes.indexOf (child));
-		this.tree.scrollPathToVisible (new TreePath (child.getPath ()));
+
+	public void addChild(DialogueNode parent, DialogueNode child) {
+		this.treeModel.insertNodeInto(child, parent, parent.childrenNodes.indexOf(child));
+		this.tree.scrollPathToVisible(new TreePath(child.getPath()));
 	}
-	
-	public void expandAll () {
-		for (int i = 0; i < this.tree.getRowCount (); i++) {
-			this.tree.expandRow (i);
+
+	public void expandAll() {
+		for (int i = 0; i < this.tree.getRowCount(); i++) {
+			this.tree.expandRow(i);
 		}
 	}
 }
-

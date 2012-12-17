@@ -2,7 +2,7 @@ package Game;
 
 import Core.DialogueNode;
 import Core.MessageHandler;
-import Core.ResponseHandler;
+import Core.ResponseHandler.ResponseType;
 import Core.XmlReader;
 import Core.XmlWriter;
 import GUI.DynamicTree;
@@ -10,6 +10,8 @@ import java.util.Collections;
 import java.util.LinkedList;
 
 public class GameEngine {
+	public enum PlayerType {STUDENT, TEACHER};
+	public static PlayerType PLAYER_TYPE = PlayerType.STUDENT;
 	private DynamicTree tree;
 	private MessageHandler msgHandler;
 	private String currentTurn;
@@ -22,11 +24,11 @@ public class GameEngine {
 		this.currentTurn = null;
 		this.root = null;
 		this.searchQueue = new LinkedList<> ();
-		createTestTree ();
+		//createTestTree ();
 	}
 	
 	private void createTestTree () {
-		DialogueNode pRoot = new DialogueNode (0, "Teacher", "SEED", ResponseHandler.Response.QUESTION, this.msgHandler); //1
+		DialogueNode pRoot = new DialogueNode (0, "Teacher", "SEED", ResponseType.QUESTION, this.msgHandler); //1
 		//DialogueNode p1_1 = new DialogueNode (1, "P1", "CHALLENGE_1", ResponseHandler.Response.CHALLENGE, this.msgHandler);//2
 		//DialogueNode p2_1 = new DialogueNode (1, "P2", "CHALLENGE_1", ResponseHandler.Response.CHALLENGE, this.msgHandler);//3
 		//DialogueNode p1_2 = new DialogueNode (3, "P1", "CHALLENGE_2", ResponseHandler.Response.CHALLENGE, this.msgHandler);//4
