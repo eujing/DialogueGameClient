@@ -38,7 +38,8 @@ public class DynamicTree extends JPanel {
 
 	private void initialize() {
 		this.setLayout(new BorderLayout());
-		this.tree = new JTree(new Object [] {});
+		this.treeModel = new DefaultTreeModel (null);
+		this.tree = new JTree(this.treeModel);
 		this.tree.setEditable(true);
 		this.tree.setCellEditor(new DialogueNodeEditor(this.tree, (DefaultTreeCellRenderer) this.tree.getCellRenderer()));
 		this.tree.setCellRenderer(new DialogueNodeRenderer());
@@ -52,10 +53,12 @@ public class DynamicTree extends JPanel {
 
 	public void clear() {
 		if (this.root != null) {
-			this.root.removeAllChildren();
+			//this.root.removeAllChildren();
+			this.root = null;
 		}
 
 		if (this.treeModel != null) {
+			this.treeModel.setRoot (null);
 			this.treeModel.reload();
 		}
 	}
@@ -73,9 +76,11 @@ public class DynamicTree extends JPanel {
 		this.tree.scrollPathToVisible(new TreePath(child.getPath()));
 	}
 
-	public void expandAll() {
-		for (int i = 0; i < this.tree.getRowCount(); i++) {
-			this.tree.expandRow(i);
-		}
+	public void setRespondEnabled (boolean enabled) {
+		DialogueNodeEditor editor = (DialogueNodeEditor) this.tree.getCellEditor ();
+		DialogueNodeRenderer renderer = (DialogueNodeRenderer) this.tree.getCellRenderer ();
+		
+		editor.setRespondEnabled (enabled);
+		renderer.setRespondEnabled (enabled);
 	}
 }

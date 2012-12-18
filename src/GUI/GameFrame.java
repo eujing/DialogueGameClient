@@ -8,6 +8,8 @@ import com.nilo.plaf.nimrod.NimRODLookAndFeel;
 import com.nilo.plaf.nimrod.NimRODTheme;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
@@ -19,54 +21,65 @@ public class GameFrame extends JFrame {
 
 	private Client client;
 
-	public GameFrame() {
+	public GameFrame () {
 		String name = "";
 		if (GameEngine.PLAYER_TYPE == PlayerType.STUDENT) {
-			name = JOptionPane.showInputDialog(null, "Enter name:");
-		} else if (GameEngine.PLAYER_TYPE == PlayerType.TEACHER) {
+			name = JOptionPane.showInputDialog (null, "Enter name:");
+		}
+		else if (GameEngine.PLAYER_TYPE == PlayerType.TEACHER) {
 			name = "Teacher";
 		}
 
-		this.client = new Client(name, "127.0.0.1", (short) 3000);
-		SwingUtilities.invokeLater(new Runnable() {
+		this.client = new Client (name, "127.0.0.1", (short) 3000);
+		SwingUtilities.invokeLater (new Runnable () {
 			@Override
-			public void run() {
+			public void run () {
 				initialize ();
 			}
 		});
-		this.client.startListening();
+		this.client.startListening ();
 	}
 
 	private void initialize () {
 		try {
-			NimRODTheme nt = new NimRODTheme("Resources/Light.theme");
-			NimRODLookAndFeel nf = new NimRODLookAndFeel();
-			nf.setCurrentTheme(nt);
-			UIManager.setLookAndFeel(nf);
-		} catch (UnsupportedLookAndFeelException ex) {
-			Logger.logDebug(ex.getMessage() + " " + ex.getCause());
+			NimRODTheme nt = new NimRODTheme ("Resources/Light.theme");
+			NimRODLookAndFeel nf = new NimRODLookAndFeel ();
+			nf.setCurrentTheme (nt);
+			UIManager.setLookAndFeel (nf);
 		}
-		setLayout(new BorderLayout());
-		setTitle("Dialogue Game - " + GameEngine.PLAYER_TYPE.toString());
-		setPreferredSize(new Dimension(1000, 720));
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		catch (UnsupportedLookAndFeelException ex) {
+			Logger.logDebug (ex.getMessage () + " " + ex.getCause ());
+		}
+		setLayout (new BorderLayout ());
+		setTitle ("Dialogue Game - " + GameEngine.PLAYER_TYPE.toString ());
+		setPreferredSize (new Dimension (1000, 720));
+		setDefaultCloseOperation (JFrame.EXIT_ON_CLOSE);
 
-		this.add(new JScrollPane(this.client.gEngine.getTree()), BorderLayout.CENTER);
-
-		pack();
-		setVisible(true);
-
-		showController();
+		this.add (new JScrollPane (this.client.gEngine.getTree ()), BorderLayout.CENTER);
 		
+		//On closing
+		this.addWindowListener (new WindowAdapter () {
+			@Override
+			public void windowClosing (WindowEvent e) {
+				if (!client.gEngine.getTreeSaved ()) {
+					client.gEngine.saveTree ();
+				}
+			}
+		});
+
+		pack ();
+		setVisible (true);
+
+		showController ();
 	}
 
-	private void showController() {
+	private void showController () {
 		if (GameEngine.PLAYER_TYPE == PlayerType.TEACHER) {
-			new TeacherMenu(client.getMessageHandler(), this);
+			new TeacherMenu (client.getMessageHandler (), this);
 		}
 	}
 
-	public static void main(String[] args) {
+	public static void main (String[] args) {
 		if (args.length == 1) {
 			switch (args[0]) {
 				case "-student":
@@ -77,6 +90,6 @@ public class GameFrame extends JFrame {
 					break;
 			}
 		}
-		new GameFrame();
+		new GameFrame ();
 	}
 }

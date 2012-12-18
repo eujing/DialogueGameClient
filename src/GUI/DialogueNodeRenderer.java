@@ -2,9 +2,7 @@ package GUI;
 
 import Core.DialogueNode;
 import Core.GamePanel;
-import java.awt.Color;
 import java.awt.Component;
-import javax.swing.BorderFactory;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
@@ -13,9 +11,15 @@ import javax.swing.tree.TreeCellRenderer;
 public class DialogueNodeRenderer implements TreeCellRenderer {
 
 	private DefaultTreeCellRenderer defaultRenderer;
+	private boolean enabled;
 	
 	public DialogueNodeRenderer () {
 		this.defaultRenderer = new DefaultTreeCellRenderer ();
+		this.enabled = false;
+	}
+	
+	public void setRespondEnabled (boolean enabled) {
+		this.enabled = enabled;
 	}
 
 	@Override
@@ -25,6 +29,7 @@ public class DialogueNodeRenderer implements TreeCellRenderer {
 		if (value != null && value instanceof DefaultMutableTreeNode) {
 			if (value instanceof DialogueNode) {
 				GamePanel gPanel = new GamePanel ((DialogueNode) value);
+				gPanel.setRespondEnabled (enabled);
 				comp = gPanel;
 			}
 		}

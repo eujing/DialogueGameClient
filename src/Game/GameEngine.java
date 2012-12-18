@@ -14,38 +14,48 @@ public class GameEngine {
 	public static PlayerType PLAYER_TYPE = PlayerType.STUDENT;
 	private DynamicTree tree;
 	private MessageHandler msgHandler;
-	private String currentTurn;
 	private DialogueNode root;
 	private LinkedList<DialogueNode> searchQueue;
+	private boolean treeSaved;
 
 	public GameEngine (MessageHandler msgHandler) {
 		this.tree = new DynamicTree ();
 		this.msgHandler = msgHandler;
-		this.currentTurn = null;
 		this.root = null;
 		this.searchQueue = new LinkedList<> ();
+		this.treeSaved = false;
 		//createTestTree ();
 	}
 	
 	private void createTestTree () {
 		DialogueNode pRoot = new DialogueNode (0, "Teacher", "SEED", ResponseType.QUESTION, this.msgHandler); //1
-		//DialogueNode p1_1 = new DialogueNode (1, "P1", "CHALLENGE_1", ResponseHandler.Response.CHALLENGE, this.msgHandler);//2
-		//DialogueNode p2_1 = new DialogueNode (1, "P2", "CHALLENGE_1", ResponseHandler.Response.CHALLENGE, this.msgHandler);//3
-		//DialogueNode p1_2 = new DialogueNode (3, "P1", "CHALLENGE_2", ResponseHandler.Response.CHALLENGE, this.msgHandler);//4
-		//DialogueNode p2_2 = new DialogueNode (1, "P2", "INFOMATION_1", ResponseHandler.Response.INFORMATION, this.msgHandler);//5
+		DialogueNode p1_1 = new DialogueNode (1, "P1", "CHALLENGE_1", ResponseType.CHALLENGE, this.msgHandler);//2
+		DialogueNode p2_1 = new DialogueNode (1, "P2", "CHALLENGE_1", ResponseType.CHALLENGE, this.msgHandler);//3
+		DialogueNode p1_2 = new DialogueNode (3, "P1", "CHALLENGE_2", ResponseType.CHALLENGE, this.msgHandler);//4
+		DialogueNode p2_2 = new DialogueNode (1, "P2", "INFOMATION_1", ResponseType.INFORMATION, this.msgHandler);//5
 
 		this.setRoot (pRoot);
 
 		this.addDialogueNode (pRoot);
-		//this.addDialogueNode (p1_1);
-		//this.addDialogueNode (p2_1);
-		//this.addDialogueNode (p1_2);
-		//this.addDialogueNode (p2_2);
+		this.addDialogueNode (p1_1);
+		this.addDialogueNode (p2_1);
+		this.addDialogueNode (p1_2);
+		this.addDialogueNode (p2_2);
 	}
 
 	public void setRoot (DialogueNode node) {
 		this.root = node;
 		this.tree.setRoot (node);
+		this.treeSaved = false;
+	}
+	
+	public void setTurn (boolean currentTurn) {
+		this.tree.setRespondEnabled (currentTurn);
+	}
+	
+	public void stopGame () {
+		this.tree.clear ();
+		this.saveTree ();
 	}
 
 	//Breadth first search
@@ -86,14 +96,21 @@ public class GameEngine {
 			parent.childrenNodes.add (node);
 			this.tree.addChild (parent, node);
 		}
+		
+		this.treeSaved = false;
 	}
 
 	public DynamicTree getTree () {
 		return this.tree;
 	}
+	
+	public boolean getTreeSaved () {
+		return this.treeSaved;
+	}
 
 	public void saveTree () {
 		XmlWriter.WriteTree ("tree.xml", this.root);
+		this.treeSaved = true;
 	}
 
 	public DialogueNode readTree () {
