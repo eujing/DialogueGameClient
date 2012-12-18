@@ -27,18 +27,18 @@ public class GameEngine {
 	
 	private void createTestTree () {
 		DialogueNode pRoot = new DialogueNode (0, "Teacher", "SEED", ResponseHandler.Response.QUESTION, this.msgHandler); //1
-		DialogueNode p1_1 = new DialogueNode (1, "P1", "CHALLENGE_1", ResponseHandler.Response.CHALLENGE, this.msgHandler);//2
-		DialogueNode p2_1 = new DialogueNode (1, "P2", "CHALLENGE_1", ResponseHandler.Response.CHALLENGE, this.msgHandler);//3
-		DialogueNode p1_2 = new DialogueNode (3, "P1", "CHALLENGE_2", ResponseHandler.Response.CHALLENGE, this.msgHandler);//4
-		DialogueNode p2_2 = new DialogueNode (1, "P2", "INFOMATION_1", ResponseHandler.Response.INFORMATION, this.msgHandler);//5
+		//DialogueNode p1_1 = new DialogueNode (1, "P1", "CHALLENGE_1", ResponseHandler.Response.CHALLENGE, this.msgHandler);//2
+		//DialogueNode p2_1 = new DialogueNode (1, "P2", "CHALLENGE_1", ResponseHandler.Response.CHALLENGE, this.msgHandler);//3
+		//DialogueNode p1_2 = new DialogueNode (3, "P1", "CHALLENGE_2", ResponseHandler.Response.CHALLENGE, this.msgHandler);//4
+		//DialogueNode p2_2 = new DialogueNode (1, "P2", "INFOMATION_1", ResponseHandler.Response.INFORMATION, this.msgHandler);//5
 
 		this.setRoot (pRoot);
 
 		this.addDialogueNode (pRoot);
-		this.addDialogueNode (p1_1);
-		this.addDialogueNode (p2_1);
-		this.addDialogueNode (p1_2);
-		this.addDialogueNode (p2_2);
+		//this.addDialogueNode (p1_1);
+		//this.addDialogueNode (p2_1);
+		//this.addDialogueNode (p1_2);
+		//this.addDialogueNode (p2_2);
 	}
 
 	public void setRoot (DialogueNode node) {

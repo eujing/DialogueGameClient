@@ -49,7 +49,6 @@ public class Client {
 			this.msgHandler.registerMessageListener ("response", new MessageListener () {
 				@Override
 				public void messageReceived (Message msg) {
-					Logger.logDebug ("Response from server");
 					DialogueNode node = (DialogueNode) msg.data;
 					node.msgHandler = msgHandler;
 					gEngine.addDialogueNode (node);

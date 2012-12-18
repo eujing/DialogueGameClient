@@ -1,22 +1,37 @@
 package GUI;
 
+import Core.Logger;
 import Networking.Client;
+import com.nilo.plaf.nimrod.NimRODLookAndFeel;
+import com.nilo.plaf.nimrod.NimRODTheme;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 
 public class GameFrame extends JFrame {
+
 	private Client client;
 
 	public GameFrame () {
 		String name = JOptionPane.showInputDialog (null, "Enter name:");
 		this.client = new Client (name, "127.0.0.1", (short) 3000);
-		
+
 		EventQueue.invokeLater (new Runnable () {
 			@Override
 			public void run () {
+				try {
+					NimRODTheme nt = new NimRODTheme ("Resources/Light.theme");
+					NimRODLookAndFeel nf = new NimRODLookAndFeel ();
+					nf.setCurrentTheme (nt);
+					UIManager.setLookAndFeel (nf);
+				}
+				catch (UnsupportedLookAndFeelException ex) {
+					Logger.logDebug (ex.getMessage () + " " + ex.getCause ());
+				}
 				setLayout (new BorderLayout ());
 				setTitle ("Dialogue Game");
 				setPreferredSize (new Dimension (1280, 720));
@@ -30,8 +45,6 @@ public class GameFrame extends JFrame {
 		});
 		this.client.startListening ();
 	}
-
-	
 
 	private void initComponents () {
 		this.add (this.client.gEngine.getTree (), BorderLayout.CENTER);

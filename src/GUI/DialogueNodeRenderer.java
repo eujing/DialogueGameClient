@@ -25,7 +25,6 @@ public class DialogueNodeRenderer implements TreeCellRenderer {
 		if (value != null && value instanceof DefaultMutableTreeNode) {
 			if (value instanceof DialogueNode) {
 				GamePanel gPanel = new GamePanel ((DialogueNode) value);
-				gPanel.setBorder (BorderFactory.createLineBorder (Color.black));
 				comp = gPanel;
 			}
 		}
