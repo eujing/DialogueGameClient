@@ -1,46 +1,86 @@
 package Game;
 
 import Core.DialogueNode;
+import Core.Logger;
+import Core.Message;
 import Core.MessageHandler;
-import Core.ResponseHandler.ResponseType;
+import Core.MessageListener;
+import Core.MessageTag;
 import Core.XmlReader;
 import Core.XmlWriter;
 import GUI.DynamicTree;
+import GUI.TeacherMenu;
+import GUI.WaitIndicatorLayer;
+import Networking.Client;
+import java.awt.Component;
+import java.awt.Image;
 import java.util.Collections;
 import java.util.LinkedList;
+import javax.swing.ImageIcon;
 
 public class GameEngine {
+	private static final String WAIT_ANIMATION = "/Resources/ActivityIndicator.gif";
+	private static final String IP_ADDRESS = "127.0.0.1";
+	private static final short PORT = 3000;
+
 	public enum PlayerType {STUDENT, TEACHER};
 	public static PlayerType PLAYER_TYPE = PlayerType.STUDENT;
+	private String playerName;
+	private Client client;
+	private int nPlayers;
 	private DynamicTree tree;
+	private WaitIndicatorLayer waitIndicatorLayer;
 	private MessageHandler msgHandler;
 	private DialogueNode root;
+	private LinkedList<DialogueNode> mostRecent;
 	private LinkedList<DialogueNode> searchQueue;
 	private boolean treeSaved;
 
-	public GameEngine (MessageHandler msgHandler) {
-		this.tree = new DynamicTree ();
-		this.msgHandler = msgHandler;
+	public GameEngine (String playerName) {
+		this.playerName = playerName;
+		this.nPlayers = 0;
+		this.tree = new DynamicTree (this);
+		this.waitIndicatorLayer = createWaitIndicatorLayer ();
+		this.msgHandler = new MessageHandler ();
+		this.registerReceivingListeners (this.msgHandler);
+		this.registerSendingListeners (this.msgHandler);
+		this.client = new Client (this.msgHandler, playerName, IP_ADDRESS, PORT);
 		this.root = null;
+		this.mostRecent = new LinkedList<> ();
 		this.searchQueue = new LinkedList<> ();
 		this.treeSaved = false;
-		//createTestTree ();
+		
+		this.client.startListening ();
 	}
 	
-	private void createTestTree () {
-		DialogueNode pRoot = new DialogueNode (0, "Teacher", "SEED", ResponseType.QUESTION, this.msgHandler); //1
-		DialogueNode p1_1 = new DialogueNode (1, "P1", "CHALLENGE_1", ResponseType.CHALLENGE, this.msgHandler);//2
-		DialogueNode p2_1 = new DialogueNode (1, "P2", "CHALLENGE_1", ResponseType.CHALLENGE, this.msgHandler);//3
-		DialogueNode p1_2 = new DialogueNode (3, "P1", "CHALLENGE_2", ResponseType.CHALLENGE, this.msgHandler);//4
-		DialogueNode p2_2 = new DialogueNode (1, "P2", "INFOMATION_1", ResponseType.INFORMATION, this.msgHandler);//5
+	private WaitIndicatorLayer createWaitIndicatorLayer () {
+		Image image = new ImageIcon (this.getClass ().getResource (WAIT_ANIMATION)).getImage ();
+		return new WaitIndicatorLayer (image);
+	}
+	
+	public void addDialogueNode (DialogueNode node) {
+		DialogueNode parent = this.getNode (node.parentId);
 
-		this.setRoot (pRoot);
+		if (parent == null) {
+			this.tree.setRoot (node);
+			this.setRoot (node);
+		}
+		else {
+			Collections.sort (parent.childrenNodes);
+			parent.childrenNodes.add (node);
+			this.tree.addChild (parent, node);
+		}
 
-		this.addDialogueNode (pRoot);
-		this.addDialogueNode (p1_1);
-		this.addDialogueNode (p2_1);
-		this.addDialogueNode (p1_2);
-		this.addDialogueNode (p2_2);
+		if (this.mostRecent.size () >= this.nPlayers) {
+			this.mostRecent.pop ();
+		}
+		this.mostRecent.add (node);
+
+		this.treeSaved = false;
+	}
+
+	public void setNumberOfPlayers (int n) {
+		this.nPlayers = n;
 	}
 
 	public void setRoot (DialogueNode node) {
@@ -48,17 +88,12 @@ public class GameEngine {
 		this.tree.setRoot (node);
 		this.treeSaved = false;
 	}
-	
+
 	public void setTurn (boolean currentTurn) {
 		this.tree.setRespondEnabled (currentTurn);
 	}
 	
-	public void stopGame () {
-		this.tree.clear ();
-		this.saveTree ();
-	}
-
-	//Breadth first search
+	//Breadth first search based on node id
 	public DialogueNode getNode (int id) {
 		if (id == 0) {
 			return null;
@@ -83,27 +118,23 @@ public class GameEngine {
 
 		return null;
 	}
-	
-	public void addDialogueNode (DialogueNode node) {
-		DialogueNode parent = this.getNode (node.parentId);
 
-		if (parent == null) {
-			this.tree.setRoot (node);
-			this.setRoot (node);
-		}
-		else {
-			Collections.sort (parent.childrenNodes);
-			parent.childrenNodes.add (node);
-			this.tree.addChild (parent, node);
-		}
-		
-		this.treeSaved = false;
+	public LinkedList<DialogueNode> getMostRecentNodes () {
+		return this.mostRecent;
+	}
+	
+	public TeacherMenu getTeacherMenu (Component invoker) {
+		return new TeacherMenu (this.msgHandler, invoker);
 	}
 
 	public DynamicTree getTree () {
 		return this.tree;
 	}
 	
+	public WaitIndicatorLayer getLayerUI () {
+		return this.waitIndicatorLayer;
+	}
+
 	public boolean getTreeSaved () {
 		return this.treeSaved;
 	}
@@ -116,5 +147,95 @@ public class GameEngine {
 	public DialogueNode readTree () {
 		XmlReader reader = new XmlReader (this.msgHandler);
 		return reader.ReadTree ("tree.xml");
+	}
+	
+	public void stopGame () {
+		this.tree.clear ();
+		this.saveTree ();
+	}
+	
+	private void registerReceivingListeners (final MessageHandler msgHandler) {
+		msgHandler.registerReceiveMessageListener (MessageTag.EXIT, new MessageListener () {
+			@Override
+			public void messageReceived (Message msg) {
+				client.disconnect ();
+			}
+		});
+
+		msgHandler.registerReceiveMessageListener (MessageTag.REJECT, new MessageListener () {
+			@Override
+			public void messageReceived (Message msg) {
+				Logger.log ("Registration rejected: " + msg.data.toString ());
+				client.disconnect ();
+			}
+		});
+		
+		msgHandler.registerReceiveMessageListener (MessageTag.NUMBER_PLAYERS, new MessageListener () {
+			@Override
+			public void messageReceived (Message msg) {
+				setNumberOfPlayers ((int) msg.data);
+			}
+		});
+
+		msgHandler.registerReceiveMessageListener (MessageTag.START_GAME, new MessageListener () {
+			@Override
+			public void messageReceived (Message msg) {
+				DialogueNode rootNode = (DialogueNode) msg.data;
+				rootNode.msgHandler = msgHandler;
+				setRoot (rootNode);
+				addDialogueNode (rootNode);
+				DialogueNode.count++;
+			}
+		});
+
+		msgHandler.registerReceiveMessageListener (MessageTag.RESPONSE, new MessageListener () {
+			@Override
+			public void messageReceived (Message msg) {
+				DialogueNode node = (DialogueNode) msg.data;
+				node.msgHandler = msgHandler;
+				addDialogueNode (node);
+				DialogueNode.count++;
+			}
+		});
+
+		msgHandler.registerReceiveMessageListener (MessageTag.CURRENT_TURN, new MessageListener () {
+			@Override
+			public void messageReceived (Message msg) {
+				boolean isCurrentTurn = msg.data.toString ().equals (playerName);
+				setTurn (isCurrentTurn);
+				waitIndicatorLayer.update (!isCurrentTurn, msg.data.toString ());
+				//NOTIFICATION ON TURN HERE
+			}
+		});
+		
+		msgHandler.registerReceiveMessageListener (MessageTag.STOP_GAME, new MessageListener () {
+			@Override
+			public void messageReceived (Message msg) {
+				stopGame ();
+			}
+		});
+	}
+
+	private void registerSendingListeners (MessageHandler msgHandler) {
+		MessageListener defaultSend = new MessageListener () {
+			@Override
+			public void messageReceived (Message msg) {
+				client.sendData (msg);
+			}
+		};
+
+		msgHandler.registerSendingMessageListener (MessageTag.RESPONSE, new MessageListener () {
+			@Override
+			public void messageReceived (Message msg) {
+				DialogueNode partialNode = (DialogueNode) msg.data;
+				partialNode.playerName = playerName;
+				client.sendData (MessageTag.RESPONSE, partialNode);
+			}
+		});
+
+		msgHandler.registerSendingMessageListener (MessageTag.START_GAME, defaultSend);
+		msgHandler.registerSendingMessageListener (MessageTag.STOP_GAME, defaultSend);
+		msgHandler.registerSendingMessageListener (MessageTag.EXIT, defaultSend);
+		msgHandler.registerSendingMessageListener (MessageTag.SKIP_TURN, defaultSend);
 	}
 }

@@ -54,7 +54,6 @@ public class TeacherMenu extends JFrame {
 		this.setLocationRelativeTo (invoker);
 		this.setLocation (invoker.getWidth (), 0);
 		this.pack ();
-		this.setVisible (true);
 	}
 
 	private void addWithinPanel (Container container, Component comp) {

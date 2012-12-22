@@ -1,45 +1,36 @@
 package Networking;
 
-import Core.DialogueNode;
 import Core.Logger;
 import Core.Message;
 import Core.MessageHandler;
-import Core.MessageListener;
 import Core.MessageTag;
-import Game.GameEngine;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 
 public class Client {
-
-	public String name;
+	private String playerName;
 	private Socket clientSocket;
 	private Thread listenThread;
 	private ObjectInputStream inFromServer;
 	private ObjectOutputStream outToServer;
 	private MessageHandler msgHandler;
-	public GameEngine gEngine;
 
-	public Client (final String name, String ipAddress, short port) {
+	public Client (MessageHandler msgHandler, String name, String ipAddress, short port) {
 		try {
-			this.name = name;
 			Logger.log ("Connecting to server...");
+			this.playerName = name;
 			this.clientSocket = new Socket (ipAddress, port);
 			this.outToServer = new ObjectOutputStream (this.clientSocket.getOutputStream ());
 			this.outToServer.flush ();
 			this.inFromServer = new ObjectInputStream (this.clientSocket.getInputStream ());
-			this.msgHandler = new MessageHandler ();
-			this.gEngine = new GameEngine (this.msgHandler);
+			this.msgHandler = msgHandler;
 
 			//Send info here
 			Logger.logDebug ("Sending info to server");
 			sendData (MessageTag.INFO, name);
 			Logger.logDebug ("Info sent!");
-
-			registerReceivingListeners (this.msgHandler);
-			registerSendingListeners (this.msgHandler);
 
 			this.listenThread = createListenThread ();
 
@@ -48,81 +39,6 @@ public class Client {
 			Logger.logDebug ("Client: " + ex.getMessage ());
 			System.exit (0);
 		}
-	}
-
-	private void registerReceivingListeners (final MessageHandler msgHandler) {
-		msgHandler.registerReceiveMessageListener (MessageTag.EXIT, new MessageListener () {
-			@Override
-			public void messageReceived (Message msg) {
-				disconnect ();
-			}
-		});
-
-		msgHandler.registerReceiveMessageListener (MessageTag.REJECT, new MessageListener () {
-			@Override
-			public void messageReceived (Message msg) {
-				Logger.log ("Registration rejected: " + msg.data.toString ());
-				disconnect ();
-			}
-		});
-
-		msgHandler.registerReceiveMessageListener (MessageTag.START_GAME, new MessageListener () {
-			@Override
-			public void messageReceived (Message msg) {
-				DialogueNode rootNode = (DialogueNode) msg.data;
-				rootNode.msgHandler = msgHandler;
-				gEngine.setRoot (rootNode);
-				gEngine.addDialogueNode (rootNode);
-				DialogueNode.count++;
-			}
-		});
-
-		msgHandler.registerReceiveMessageListener (MessageTag.RESPONSE, new MessageListener () {
-			@Override
-			public void messageReceived (Message msg) {
-				DialogueNode node = (DialogueNode) msg.data;
-				node.msgHandler = msgHandler;
-				gEngine.addDialogueNode (node);
-				DialogueNode.count++;
-			}
-		});
-
-		msgHandler.registerReceiveMessageListener (MessageTag.CURRENT_TURN, new MessageListener () {
-			@Override
-			public void messageReceived (Message msg) {
-				gEngine.setTurn (msg.data.toString ().equals (name));
-			}
-		});
-		
-		msgHandler.registerReceiveMessageListener (MessageTag.STOP_GAME, new MessageListener () {
-			@Override
-			public void messageReceived (Message msg) {
-				gEngine.stopGame ();
-			}
-		});
-	}
-
-	private void registerSendingListeners (MessageHandler msgHandler) {
-		MessageListener defaultSend = new MessageListener () {
-			@Override
-			public void messageReceived (Message msg) {
-				sendData (msg);
-			}
-		};
-
-		msgHandler.registerSendingMessageListener (MessageTag.RESPONSE, new MessageListener () {
-			@Override
-			public void messageReceived (Message msg) {
-				DialogueNode partialNode = (DialogueNode) msg.data;
-				partialNode.playerName = name;
-				sendData (MessageTag.RESPONSE, partialNode);
-			}
-		});
-
-		msgHandler.registerSendingMessageListener (MessageTag.START_GAME, defaultSend);
-		msgHandler.registerSendingMessageListener (MessageTag.STOP_GAME, defaultSend);
-		msgHandler.registerSendingMessageListener (MessageTag.EXIT, defaultSend);
-		msgHandler.registerSendingMessageListener (MessageTag.SKIP_TURN, defaultSend);
 	}
 
 	private Thread createListenThread () {
@@ -153,10 +69,6 @@ public class Client {
 				}
 			}
 		});
-	}
-
-	public MessageHandler getMessageHandler () {
-		return this.msgHandler;
 	}
 
 	public void startListening () {
@@ -192,6 +104,6 @@ public class Client {
 	}
 
 	public final void sendData (MessageTag tag, Object data) {
-		this.sendData (new Message (tag, this.name, data));
+		this.sendData (new Message (tag, this.playerName, data));
 	}
 }

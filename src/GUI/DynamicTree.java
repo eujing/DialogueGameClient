@@ -1,6 +1,7 @@
 package GUI;
 
 import Core.DialogueNode;
+import Game.GameEngine;
 import java.awt.BorderLayout;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -15,43 +16,44 @@ import javax.swing.tree.TreeSelectionModel;
 
 public class DynamicTree extends JPanel {
 
+	private GameEngine gEngine;
 	private DialogueNode root;
 	private DefaultTreeModel treeModel;
 	private JTree tree;
 
-	public DynamicTree() {
-		initialize();
+	public DynamicTree (GameEngine gEngine) {
+		initialize (gEngine);
 
-		this.tree.addTreeSelectionListener(new TreeSelectionListener() {
+		this.tree.addTreeSelectionListener (new TreeSelectionListener () {
 			@Override
-			public void valueChanged(TreeSelectionEvent e) {
-				final TreePath path = e.getNewLeadSelectionPath();
-				SwingUtilities.invokeLater(new Runnable() {
+			public void valueChanged (TreeSelectionEvent e) {
+				final TreePath path = e.getNewLeadSelectionPath ();
+				SwingUtilities.invokeLater (new Runnable () {
 					@Override
-					public void run() {
-						tree.startEditingAtPath(path);
+					public void run () {
+						tree.startEditingAtPath (path);
 					}
 				});
 			}
 		});
 	}
 
-	private void initialize() {
-		this.setLayout(new BorderLayout());
+	private void initialize (GameEngine gEngine) {
+		this.setLayout (new BorderLayout ());
 		this.treeModel = new DefaultTreeModel (null);
-		this.tree = new JTree(this.treeModel);
-		this.tree.setEditable(true);
-		this.tree.setCellEditor(new DialogueNodeEditor(this.tree, (DefaultTreeCellRenderer) this.tree.getCellRenderer()));
-		this.tree.setCellRenderer(new DialogueNodeRenderer());
-		this.tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
-		this.tree.setShowsRootHandles(true);
-		this.tree.setRootVisible(true);
-		this.tree.setRowHeight(0);
+		this.tree = new JTree (this.treeModel);
+		this.tree.setEditable (true);
+		this.tree.setCellEditor (new DialogueNodeEditor (gEngine, this.tree, (DefaultTreeCellRenderer) this.tree.getCellRenderer ()));
+		this.tree.setCellRenderer (new DialogueNodeRenderer (gEngine));
+		this.tree.getSelectionModel ().setSelectionMode (TreeSelectionModel.SINGLE_TREE_SELECTION);
+		this.tree.setShowsRootHandles (true);
+		this.tree.setRootVisible (true);
+		this.tree.setRowHeight (0);
 
-		this.add(new JScrollPane(tree), BorderLayout.CENTER);
+		this.add (new JScrollPane (tree), BorderLayout.CENTER);
 	}
 
-	public void clear() {
+	public void clear () {
 		if (this.root != null) {
 			//this.root.removeAllChildren();
 			this.root = null;
@@ -59,27 +61,27 @@ public class DynamicTree extends JPanel {
 
 		if (this.treeModel != null) {
 			this.treeModel.setRoot (null);
-			this.treeModel.reload();
+			this.treeModel.reload ();
 		}
 	}
 
-	public void setRoot(DialogueNode root) {
-		clear();
+	public void setRoot (DialogueNode root) {
+		clear ();
 		this.root = root;
-		this.treeModel = new DefaultTreeModel(this.root);
-		this.tree.setModel(this.treeModel);
-		this.treeModel.reload();
+		this.treeModel = new DefaultTreeModel (this.root);
+		this.tree.setModel (this.treeModel);
+		this.treeModel.reload ();
 	}
 
-	public void addChild(DialogueNode parent, DialogueNode child) {
-		this.treeModel.insertNodeInto(child, parent, parent.childrenNodes.indexOf(child));
-		this.tree.scrollPathToVisible(new TreePath(child.getPath()));
+	public void addChild (DialogueNode parent, DialogueNode child) {
+		this.treeModel.insertNodeInto (child, parent, parent.childrenNodes.indexOf (child));
+		this.tree.scrollPathToVisible (new TreePath (child.getPath ()));
 	}
 
 	public void setRespondEnabled (boolean enabled) {
 		DialogueNodeEditor editor = (DialogueNodeEditor) this.tree.getCellEditor ();
 		DialogueNodeRenderer renderer = (DialogueNodeRenderer) this.tree.getCellRenderer ();
-		
+
 		editor.setRespondEnabled (enabled);
 		renderer.setRespondEnabled (enabled);
 	}

@@ -1,1 +1,1 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?><dialogue><node><id>1</id><name>Teacher</name><text>test t</text><type>SEED</type></node></dialogue>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><dialogue><node><id>1</id><name>Teacher</name><text>test a</text><type>QUESTION</type></node></dialogue>
