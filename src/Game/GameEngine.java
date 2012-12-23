@@ -1,6 +1,7 @@
 package Game;
 
 import Core.DialogueNode;
+import Core.FileReader;
 import Core.Logger;
 import Core.Message;
 import Core.MessageHandler;
@@ -20,6 +21,7 @@ import javax.swing.ImageIcon;
 
 public class GameEngine {
 	private static final String WAIT_ANIMATION = "/Resources/ActivityIndicator.gif";
+	private static final String TURN_NOTIFICATION = "/Resources/ding.wav";
 	private static final String IP_ADDRESS = "127.0.0.1";
 	private static final short PORT = 3000;
 
@@ -35,6 +37,7 @@ public class GameEngine {
 	private LinkedList<DialogueNode> mostRecent;
 	private LinkedList<DialogueNode> searchQueue;
 	private boolean treeSaved;
+	private SoundPlayer turnNotification;
 
 	public GameEngine (String playerName) {
 		this.playerName = playerName;
@@ -49,12 +52,13 @@ public class GameEngine {
 		this.mostRecent = new LinkedList<> ();
 		this.searchQueue = new LinkedList<> ();
 		this.treeSaved = false;
+		this.turnNotification = new SoundPlayer (TURN_NOTIFICATION);
 		
 		this.client.startListening ();
 	}
 	
 	private WaitIndicatorLayer createWaitIndicatorLayer () {
-		Image image = new ImageIcon (this.getClass ().getResource (WAIT_ANIMATION)).getImage ();
+		Image image = FileReader.getImage (this.getClass ().getResource (WAIT_ANIMATION), 0, 0);
 		return new WaitIndicatorLayer (image);
 	}
 	
@@ -159,6 +163,7 @@ public class GameEngine {
 			@Override
 			public void messageReceived (Message msg) {
 				client.disconnect ();
+				turnNotification.cleanup ();
 			}
 		});
 
@@ -204,7 +209,10 @@ public class GameEngine {
 				boolean isCurrentTurn = msg.data.toString ().equals (playerName);
 				setTurn (isCurrentTurn);
 				waitIndicatorLayer.update (!isCurrentTurn, msg.data.toString ());
-				//NOTIFICATION ON TURN HERE
+				
+				if (isCurrentTurn) {
+					turnNotification.play ();
+				}
 			}
 		});
 		
