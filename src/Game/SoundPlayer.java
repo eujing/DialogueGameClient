@@ -1,6 +1,7 @@
 package Game;
 
 import Core.Logger;
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
@@ -15,7 +16,8 @@ public class SoundPlayer {
 	
 	public SoundPlayer (String file) {
 		try {
-			AudioInputStream stream = AudioSystem.getAudioInputStream (this.getClass().getResourceAsStream (file));
+			AudioInputStream stream = AudioSystem.getAudioInputStream (
+				new BufferedInputStream (this.getClass().getResourceAsStream (file)));
 			Info info = new Info (Clip.class, stream.getFormat ());
 			this.clip = (Clip) AudioSystem.getLine (info);
 			this.clip.open (stream);

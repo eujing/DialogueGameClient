@@ -10,6 +10,7 @@ import Core.MessageTag;
 import Core.XmlReader;
 import Core.XmlWriter;
 import GUI.DynamicTree;
+import GUI.StudentMenu;
 import GUI.TeacherMenu;
 import GUI.WaitIndicatorLayer;
 import Networking.Client;
@@ -18,16 +19,22 @@ import java.awt.Image;
 import java.util.Collections;
 import java.util.LinkedList;
 import javax.swing.ImageIcon;
+import javax.swing.JFrame;
 
 public class GameEngine {
+
 	private static final String WAIT_ANIMATION = "/Resources/ActivityIndicator.gif";
 	private static final String TURN_NOTIFICATION = "/Resources/ding.wav";
 	private static final String IP_ADDRESS = "127.0.0.1";
 	private static final short PORT = 3000;
 
-	public enum PlayerType {STUDENT, TEACHER};
+	public enum PlayerType {
+
+		STUDENT, TEACHER
+	};
 	public static PlayerType PLAYER_TYPE = PlayerType.STUDENT;
 	private String playerName;
+	private ImageIcon playerAvatar;
 	private Client client;
 	private int nPlayers;
 	private DynamicTree tree;
@@ -39,8 +46,9 @@ public class GameEngine {
 	private boolean treeSaved;
 	private SoundPlayer turnNotification;
 
-	public GameEngine (String playerName) {
+	public GameEngine (String playerName, ImageIcon playerAvatar) {
 		this.playerName = playerName;
+		this.playerAvatar = playerAvatar;
 		this.nPlayers = 0;
 		this.tree = new DynamicTree (this);
 		this.waitIndicatorLayer = createWaitIndicatorLayer ();
@@ -53,15 +61,15 @@ public class GameEngine {
 		this.searchQueue = new LinkedList<> ();
 		this.treeSaved = false;
 		this.turnNotification = new SoundPlayer (TURN_NOTIFICATION);
-		
+
 		this.client.startListening ();
 	}
-	
+
 	private WaitIndicatorLayer createWaitIndicatorLayer () {
 		Image image = FileReader.getImage (this.getClass ().getResource (WAIT_ANIMATION), 0, 0);
 		return new WaitIndicatorLayer (image);
 	}
-	
+
 	public void addDialogueNode (DialogueNode node) {
 		DialogueNode parent = this.getNode (node.parentId);
 
@@ -96,7 +104,7 @@ public class GameEngine {
 	public void setTurn (boolean currentTurn) {
 		this.tree.setRespondEnabled (currentTurn);
 	}
-	
+
 	//Breadth first search based on node id
 	public DialogueNode getNode (int id) {
 		if (id == 0) {
@@ -126,15 +134,22 @@ public class GameEngine {
 	public LinkedList<DialogueNode> getMostRecentNodes () {
 		return this.mostRecent;
 	}
-	
-	public TeacherMenu getTeacherMenu (Component invoker) {
-		return new TeacherMenu (this.msgHandler, invoker);
+
+	public JFrame getControlPanel (Component invoker) {
+		if (PLAYER_TYPE == PlayerType.TEACHER) {
+			return new TeacherMenu (this.msgHandler, invoker);
+		}
+		else if (PLAYER_TYPE == PlayerType.STUDENT) {
+			return new StudentMenu (this.msgHandler, invoker);
+		}
+		
+		return null;
 	}
 
 	public DynamicTree getTree () {
 		return this.tree;
 	}
-	
+
 	public WaitIndicatorLayer getLayerUI () {
 		return this.waitIndicatorLayer;
 	}
@@ -152,12 +167,12 @@ public class GameEngine {
 		XmlReader reader = new XmlReader (this.msgHandler);
 		return reader.ReadTree ("tree.xml");
 	}
-	
+
 	public void stopGame () {
 		this.tree.clear ();
 		this.saveTree ();
 	}
-	
+
 	private void registerReceivingListeners (final MessageHandler msgHandler) {
 		msgHandler.registerReceiveMessageListener (MessageTag.EXIT, new MessageListener () {
 			@Override
@@ -174,7 +189,7 @@ public class GameEngine {
 				client.disconnect ();
 			}
 		});
-		
+
 		msgHandler.registerReceiveMessageListener (MessageTag.NUMBER_PLAYERS, new MessageListener () {
 			@Override
 			public void messageReceived (Message msg) {
@@ -209,17 +224,18 @@ public class GameEngine {
 				boolean isCurrentTurn = msg.data.toString ().equals (playerName);
 				setTurn (isCurrentTurn);
 				waitIndicatorLayer.update (!isCurrentTurn, msg.data.toString ());
-				
+
 				if (isCurrentTurn) {
 					turnNotification.play ();
 				}
 			}
 		});
-		
+
 		msgHandler.registerReceiveMessageListener (MessageTag.STOP_GAME, new MessageListener () {
 			@Override
 			public void messageReceived (Message msg) {
 				stopGame ();
+				waitIndicatorLayer.update (false, "");
 			}
 		});
 	}
@@ -237,13 +253,29 @@ public class GameEngine {
 			public void messageReceived (Message msg) {
 				DialogueNode partialNode = (DialogueNode) msg.data;
 				partialNode.playerName = playerName;
+				partialNode.avatar = playerAvatar;
 				client.sendData (MessageTag.RESPONSE, partialNode);
 			}
 		});
 
-		msgHandler.registerSendingMessageListener (MessageTag.START_GAME, defaultSend);
+		msgHandler.registerSendingMessageListener (MessageTag.START_GAME,  new MessageListener () {
+			@Override
+			public void messageReceived (Message msg) {
+				DialogueNode partialNode = (DialogueNode) msg.data;
+				partialNode.playerName = playerName;
+				partialNode.avatar = playerAvatar;
+				client.sendData (MessageTag.RESPONSE, partialNode);
+			}
+		});
 		msgHandler.registerSendingMessageListener (MessageTag.STOP_GAME, defaultSend);
 		msgHandler.registerSendingMessageListener (MessageTag.EXIT, defaultSend);
-		msgHandler.registerSendingMessageListener (MessageTag.SKIP_TURN, defaultSend);
+		msgHandler.registerSendingMessageListener (MessageTag.SKIP_TURN, new MessageListener () {
+			@Override
+			public void messageReceived (Message msg) {
+				msg.from = playerName;
+				msg.data = playerName;
+				client.sendData (msg);
+			}
+		});
 	}
 }

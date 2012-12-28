@@ -3,16 +3,15 @@ package GUI;
 import Core.Logger;
 import Game.GameEngine;
 import Game.GameEngine.PlayerType;
-import Networking.Client;
 import com.nilo.plaf.nimrod.NimRODLookAndFeel;
 import com.nilo.plaf.nimrod.NimRODTheme;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.image.BufferedImage;
-import java.io.IOException;
-import javax.imageio.ImageIO;
+import java.io.File;
+import javax.swing.ImageIcon;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLayer;
 import javax.swing.JOptionPane;
@@ -21,16 +20,18 @@ import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.filechooser.FileFilter;
 
 public class GameFrame extends JFrame {
 
 	private static final String THEME = "Resources/Light.theme";
 	private static final int FRAME_WIDTH = 640;
 	private static final int FRAME_HEIGHT = 720;
+	private static final String[] fileExtensions = {"jpg", "png", "gif"};
 	private GameEngine gEngine;
 
 	public GameFrame () {
-		this.gEngine = new GameEngine (this.getPlayerName ());
+		this.gEngine = new GameEngine (this.getPlayerName (), this.getPlayerAvatar ());
 		SwingUtilities.invokeLater (new Runnable () {
 			@Override
 			public void run () {
@@ -49,6 +50,47 @@ public class GameFrame extends JFrame {
 		}
 		
 		return name;
+	}
+	
+	private ImageIcon getPlayerAvatar () {
+		JFileChooser fileChooser = new JFileChooser ();
+		fileChooser.setFileFilter (new FileFilter () {		
+			@Override
+			public String getDescription () {
+				String buffer = "";
+				for (int i = 0; i < fileExtensions.length; i++) {
+					if (i + 1 < fileExtensions.length) {
+						buffer += fileExtensions[i] + ", ";
+					}
+					else {
+						buffer += "and " + fileExtensions[i];
+					}
+				}
+				
+				return buffer;
+			}
+			
+			@Override
+			public boolean accept (File file) {
+				for (String extension : fileExtensions) {
+					if (file.getName ().toLowerCase ().endsWith (extension)) {
+						return true;
+					}
+				}
+				
+				return false;
+			}
+		});
+		int value = fileChooser.showOpenDialog (this);
+		
+		switch (value) {
+			case JFileChooser.APPROVE_OPTION: {
+				return new ImageIcon (fileChooser.getSelectedFile ().getAbsolutePath ());
+			}
+			default: {
+				return null;
+			}
+		}
 	}
 	
 	private void setLookAndFeel () {
@@ -91,7 +133,7 @@ public class GameFrame extends JFrame {
 		pack ();
 		setVisible (true);
 
-		gEngine.getTeacherMenu (this).setVisible (true);
+		gEngine.getControlPanel (this).setVisible (true);
 	}
 
 	public static void main (String[] args) {
