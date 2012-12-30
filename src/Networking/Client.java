@@ -61,8 +61,9 @@ public class Client {
 						}
 					}
 				}
-				catch (IOException | ClassNotFoundException ex) {
-					Logger.logDebug ("Disconnecting");
+				catch (Exception ex) {
+					Logger.log ("Disconnecting");
+					Logger.logDebug (ex.getMessage () + " " + ex.getCause ());
 				}
 				finally {
 					disconnect ();

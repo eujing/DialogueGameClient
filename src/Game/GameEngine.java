@@ -13,10 +13,10 @@ import GUI.DynamicTree;
 import GUI.StudentMenu;
 import GUI.TeacherMenu;
 import GUI.WaitIndicatorLayer;
+import Mapping.DialogueMap;
 import Networking.Client;
 import java.awt.Component;
 import java.awt.Image;
-import java.util.Collections;
 import java.util.LinkedList;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
@@ -37,12 +37,11 @@ public class GameEngine {
 	private ImageIcon playerAvatar;
 	private Client client;
 	private int nPlayers;
-	private DynamicTree tree;
 	private WaitIndicatorLayer waitIndicatorLayer;
 	private MessageHandler msgHandler;
-	private DialogueNode root;
+	private DialogueTree tree;
+	private DialogueMap map;
 	private LinkedList<DialogueNode> mostRecent;
-	private LinkedList<DialogueNode> searchQueue;
 	private boolean treeSaved;
 	private SoundPlayer turnNotification;
 
@@ -50,15 +49,14 @@ public class GameEngine {
 		this.playerName = playerName;
 		this.playerAvatar = playerAvatar;
 		this.nPlayers = 0;
-		this.tree = new DynamicTree (this);
+		this.tree = new DialogueTree (this);
+		this.map = new DialogueMap (this.tree);
 		this.waitIndicatorLayer = createWaitIndicatorLayer ();
 		this.msgHandler = new MessageHandler ();
 		this.registerReceivingListeners (this.msgHandler);
 		this.registerSendingListeners (this.msgHandler);
 		this.client = new Client (this.msgHandler, playerName, IP_ADDRESS, PORT);
-		this.root = null;
 		this.mostRecent = new LinkedList<> ();
-		this.searchQueue = new LinkedList<> ();
 		this.treeSaved = false;
 		this.turnNotification = new SoundPlayer (TURN_NOTIFICATION);
 
@@ -71,17 +69,7 @@ public class GameEngine {
 	}
 
 	public void addDialogueNode (DialogueNode node) {
-		DialogueNode parent = this.getNode (node.parentId);
-
-		if (parent == null) {
-			this.tree.setRoot (node);
-			this.setRoot (node);
-		}
-		else {
-			Collections.sort (parent.childrenNodes);
-			parent.childrenNodes.add (node);
-			this.tree.addChild (parent, node);
-		}
+		this.tree.addDialogueNode (node);
 
 		if (this.mostRecent.size () >= this.nPlayers) {
 			this.mostRecent.pop ();
@@ -96,39 +84,12 @@ public class GameEngine {
 	}
 
 	public void setRoot (DialogueNode node) {
-		this.root = node;
 		this.tree.setRoot (node);
 		this.treeSaved = false;
 	}
 
 	public void setTurn (boolean currentTurn) {
-		this.tree.setRespondEnabled (currentTurn);
-	}
-
-	//Breadth first search based on node id
-	public DialogueNode getNode (int id) {
-		if (id == 0) {
-			return null;
-		}
-
-		this.searchQueue.clear ();
-		this.searchQueue.add (this.root);
-
-		DialogueNode current;
-		while (!this.searchQueue.isEmpty ()) {
-			current = this.searchQueue.pop ();
-
-			if (current.id == id) {
-				return current;
-			}
-			else if (!current.childrenNodes.isEmpty ()) {
-				for (DialogueNode node : current.childrenNodes) {
-					this.searchQueue.add (node);
-				}
-			}
-		}
-
-		return null;
+		this.tree.getDynamicTree ().setRespondEnabled (currentTurn);
 	}
 
 	public LinkedList<DialogueNode> getMostRecentNodes () {
@@ -146,7 +107,11 @@ public class GameEngine {
 		return null;
 	}
 
-	public DynamicTree getTree () {
+	public DynamicTree getDynamicTree () {
+		return this.tree.getDynamicTree ();
+	}
+	
+	public DialogueTree getDialogueTree () {
 		return this.tree;
 	}
 
@@ -159,7 +124,7 @@ public class GameEngine {
 	}
 
 	public void saveTree () {
-		XmlWriter.WriteTree ("tree.xml", this.root);
+		XmlWriter.WriteTree ("tree.xml", this.tree.getRootDialogueNode ());
 		this.treeSaved = true;
 	}
 
@@ -169,7 +134,7 @@ public class GameEngine {
 	}
 
 	public void stopGame () {
-		this.tree.clear ();
+		this.tree.getDynamicTree ().clear ();
 		this.saveTree ();
 	}
 

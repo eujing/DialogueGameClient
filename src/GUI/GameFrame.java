@@ -3,6 +3,8 @@ package GUI;
 import Core.Logger;
 import Game.GameEngine;
 import Game.GameEngine.PlayerType;
+import Mapping.DialogueMap;
+import com.mxgraph.view.mxGraph;
 import com.nilo.plaf.nimrod.NimRODLookAndFeel;
 import com.nilo.plaf.nimrod.NimRODTheme;
 import java.awt.BorderLayout;
@@ -17,11 +19,11 @@ import javax.swing.JLayer;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.filechooser.FileFilter;
-
 public class GameFrame extends JFrame {
 
 	private static final String THEME = "Resources/Light.theme";
@@ -29,6 +31,7 @@ public class GameFrame extends JFrame {
 	private static final int FRAME_HEIGHT = 720;
 	private static final String[] fileExtensions = {"jpg", "png", "gif"};
 	private GameEngine gEngine;
+	private JTabbedPane tabbedPane;
 
 	public GameFrame () {
 		this.gEngine = new GameEngine (this.getPlayerName (), this.getPlayerAvatar ());
@@ -108,6 +111,8 @@ public class GameFrame extends JFrame {
 	private void initialize () {
 		this.setLookAndFeel ();
 		
+		this.tabbedPane = new JTabbedPane ();
+		
 		//Set frame properties
 		setTitle ("Dialogue Game - " + GameEngine.PLAYER_TYPE.toString ());
 		setPreferredSize (new Dimension (FRAME_WIDTH, FRAME_HEIGHT));
@@ -115,11 +120,13 @@ public class GameFrame extends JFrame {
 
 		//Add panels
 		JPanel panel = new JPanel (new BorderLayout ());
-		panel.add (new JScrollPane (this.gEngine.getTree ()), BorderLayout.CENTER);
+		panel.add (new JScrollPane (this.gEngine.getDynamicTree ()), BorderLayout.CENTER);
 		
 		
-		this.add (new JLayer <> (panel, this.gEngine.getLayerUI ()));
+		this.tabbedPane.add ("Dialogue", new JLayer <> (panel, this.gEngine.getLayerUI ()));
+		this.tabbedPane.add ("Map", new JScrollPane (new DialogueMap (this.gEngine.getDialogueTree ())));
 		
+		this.add (this.tabbedPane);
 		//On closing
 		this.addWindowListener (new WindowAdapter () {
 			@Override
