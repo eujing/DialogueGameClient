@@ -23,7 +23,7 @@ public class SoundPlayer {
 			this.clip.open (stream);
 		}
 		catch (UnsupportedAudioFileException | IOException | LineUnavailableException ex) {
-			Logger.log (ex.getMessage () + "\n" + ex.getCause ());
+			Logger.logException ("SoundPlayer::SoundPlayer", ex);
 		}
 	}
 

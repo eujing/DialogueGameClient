@@ -1,7 +1,6 @@
 package GUI;
 
 import Core.DialogueNode;
-import Game.GameEngine;
 import java.awt.BorderLayout;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -16,13 +15,12 @@ import javax.swing.tree.TreeSelectionModel;
 
 public class DynamicTree extends JPanel {
 
-	private GameEngine gEngine;
 	private DialogueNode root;
 	private DefaultTreeModel treeModel;
 	private JTree tree;
 
-	public DynamicTree (GameEngine gEngine) {
-		initialize (gEngine);
+	public DynamicTree () {
+		initialize ();
 
 		this.tree.addTreeSelectionListener (new TreeSelectionListener () {
 			@Override
@@ -38,13 +36,13 @@ public class DynamicTree extends JPanel {
 		});
 	}
 
-	private void initialize (GameEngine gEngine) {
+	private void initialize () {
 		this.setLayout (new BorderLayout ());
 		this.treeModel = new DefaultTreeModel (null);
 		this.tree = new JTree (this.treeModel);
 		this.tree.setEditable (true);
-		this.tree.setCellEditor (new DialogueNodeEditor (gEngine, this.tree, (DefaultTreeCellRenderer) this.tree.getCellRenderer ()));
-		this.tree.setCellRenderer (new DialogueNodeRenderer (gEngine));
+		this.tree.setCellEditor (new DialogueNodeEditor (this.tree, (DefaultTreeCellRenderer) this.tree.getCellRenderer ()));
+		this.tree.setCellRenderer (new DialogueNodeRenderer ());
 		this.tree.getSelectionModel ().setSelectionMode (TreeSelectionModel.SINGLE_TREE_SELECTION);
 		this.tree.setShowsRootHandles (true);
 		this.tree.setRootVisible (true);
@@ -70,7 +68,19 @@ public class DynamicTree extends JPanel {
 		this.root = root;
 		this.treeModel = new DefaultTreeModel (this.root);
 		this.tree.setModel (this.treeModel);
+		for (DialogueNode child : this.root.childrenNodes) {
+			this.recurseAddChild (this.root, child);
+		}
 		this.treeModel.reload ();
+	}
+	
+	public void recurseAddChild (DialogueNode parent, DialogueNode child) {
+		this.addChild (parent, child);
+		if (child.childrenNodes.size () > 0) {
+			for (DialogueNode childChild : child.childrenNodes) {
+				this.addChild (child, childChild);
+			}
+		}
 	}
 
 	public void addChild (DialogueNode parent, DialogueNode child) {

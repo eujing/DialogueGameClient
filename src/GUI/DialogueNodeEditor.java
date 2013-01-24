@@ -2,7 +2,6 @@ package GUI;
 
 import Core.DialogueNode;
 import Core.GamePanel;
-import Game.GameEngine;
 import java.awt.Color;
 import java.awt.Component;
 import javax.swing.BorderFactory;
@@ -12,12 +11,10 @@ import javax.swing.tree.DefaultTreeCellRenderer;
 
 public class DialogueNodeEditor extends DefaultTreeCellEditor {
 
-	private GameEngine gEngine;
 	private boolean enabled;
 
-	public DialogueNodeEditor (GameEngine gEngine, JTree tree, DefaultTreeCellRenderer renderer) {
+	public DialogueNodeEditor (JTree tree, DefaultTreeCellRenderer renderer) {
 		super (tree, renderer);
-		this.gEngine = gEngine;
 		this.enabled = false;
 	}
 
@@ -32,9 +29,11 @@ public class DialogueNodeEditor extends DefaultTreeCellEditor {
 			GamePanel gPanel = new GamePanel (node);
 			gPanel.setBorder (BorderFactory.createLineBorder (Color.black, 1, true));
 			gPanel.setRespondEnabled (this.enabled);
-			if (this.gEngine != null && this.gEngine.getMostRecentNodes ().contains (node)) {
+			
+			if (node.isMostRecent) {
 				gPanel.setBackground (Color.red);
 			}
+			
 			return gPanel;
 		}
 

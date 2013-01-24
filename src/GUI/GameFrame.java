@@ -1,17 +1,16 @@
 package GUI;
 
+import Core.ExtensionFileFilter;
 import Core.Logger;
 import Game.GameEngine;
 import Game.GameEngine.PlayerType;
 import Mapping.DialogueMap;
-import com.mxgraph.view.mxGraph;
 import com.nilo.plaf.nimrod.NimRODLookAndFeel;
 import com.nilo.plaf.nimrod.NimRODTheme;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.File;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -23,7 +22,6 @@ import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
-import javax.swing.filechooser.FileFilter;
 public class GameFrame extends JFrame {
 
 	private static final String THEME = "Resources/Light.theme";
@@ -57,33 +55,7 @@ public class GameFrame extends JFrame {
 	
 	private ImageIcon getPlayerAvatar () {
 		JFileChooser fileChooser = new JFileChooser ();
-		fileChooser.setFileFilter (new FileFilter () {		
-			@Override
-			public String getDescription () {
-				String buffer = "";
-				for (int i = 0; i < fileExtensions.length; i++) {
-					if (i + 1 < fileExtensions.length) {
-						buffer += fileExtensions[i] + ", ";
-					}
-					else {
-						buffer += "and " + fileExtensions[i];
-					}
-				}
-				
-				return buffer;
-			}
-			
-			@Override
-			public boolean accept (File file) {
-				for (String extension : fileExtensions) {
-					if (file.getName ().toLowerCase ().endsWith (extension)) {
-						return true;
-					}
-				}
-				
-				return false;
-			}
-		});
+		fileChooser.setFileFilter (new ExtensionFileFilter (fileExtensions));
 		int value = fileChooser.showOpenDialog (this);
 		
 		switch (value) {
@@ -104,12 +76,13 @@ public class GameFrame extends JFrame {
 			UIManager.setLookAndFeel (nf);
 		}
 		catch (UnsupportedLookAndFeelException ex) {
-			Logger.logDebug (ex.getMessage () + " " + ex.getCause ());
+			Logger.logException ("GameFrame::setLookAndFeel", ex);
 		}
 	}
 
-	private void initialize () {
+	private void initialize () {  
 		this.setLookAndFeel ();
+		this.setLayout (new BorderLayout ());
 		
 		this.tabbedPane = new JTabbedPane ();
 		
@@ -122,11 +95,13 @@ public class GameFrame extends JFrame {
 		JPanel panel = new JPanel (new BorderLayout ());
 		panel.add (new JScrollPane (this.gEngine.getDynamicTree ()), BorderLayout.CENTER);
 		
-		
+		//Add Dialogue and Map tabs
 		this.tabbedPane.add ("Dialogue", new JLayer <> (panel, this.gEngine.getLayerUI ()));
 		this.tabbedPane.add ("Map", new JScrollPane (new DialogueMap (this.gEngine.getDialogueTree ())));
 		
-		this.add (this.tabbedPane);
+		this.add (this.tabbedPane, BorderLayout.CENTER);
+		this.add (gEngine.getControlPanel (), BorderLayout.PAGE_END);
+
 		//On closing
 		this.addWindowListener (new WindowAdapter () {
 			@Override
@@ -139,8 +114,6 @@ public class GameFrame extends JFrame {
 
 		pack ();
 		setVisible (true);
-
-		gEngine.getControlPanel (this).setVisible (true);
 	}
 
 	public static void main (String[] args) {

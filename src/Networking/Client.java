@@ -36,7 +36,7 @@ public class Client {
 
 		}
 		catch (Exception ex) {
-			Logger.logDebug ("Client: " + ex.getMessage ());
+			Logger.logException ("Client::Client", ex);
 			System.exit (0);
 		}
 	}
@@ -61,7 +61,7 @@ public class Client {
 						}
 					}
 				}
-				catch (Exception ex) {
+				catch (IOException | ClassNotFoundException ex) {
 					Logger.log ("Disconnecting");
 					Logger.logDebug (ex.getMessage () + " " + ex.getCause ());
 				}

@@ -10,16 +10,16 @@ import Core.MessageTag;
 import Core.XmlReader;
 import Core.XmlWriter;
 import GUI.DynamicTree;
-import GUI.StudentMenu;
-import GUI.TeacherMenu;
+import GUI.StudentPanel;
+import GUI.TeachePanel;
 import GUI.WaitIndicatorLayer;
 import Mapping.DialogueMap;
 import Networking.Client;
-import java.awt.Component;
 import java.awt.Image;
+import java.io.File;
 import java.util.LinkedList;
 import javax.swing.ImageIcon;
-import javax.swing.JFrame;
+import javax.swing.JPanel;
 
 public class GameEngine {
 
@@ -49,7 +49,7 @@ public class GameEngine {
 		this.playerName = playerName;
 		this.playerAvatar = playerAvatar;
 		this.nPlayers = 0;
-		this.tree = new DialogueTree (this);
+		this.tree = new DialogueTree ();
 		this.map = new DialogueMap (this.tree);
 		this.waitIndicatorLayer = createWaitIndicatorLayer ();
 		this.msgHandler = new MessageHandler ();
@@ -72,8 +72,11 @@ public class GameEngine {
 		this.tree.addDialogueNode (node);
 
 		if (this.mostRecent.size () >= this.nPlayers) {
+			node.setIsMostRecent (false);
 			this.mostRecent.pop ();
 		}
+
+		node.setIsMostRecent (true);
 		this.mostRecent.add (node);
 
 		this.treeSaved = false;
@@ -96,21 +99,21 @@ public class GameEngine {
 		return this.mostRecent;
 	}
 
-	public JFrame getControlPanel (Component invoker) {
+	public JPanel getControlPanel () {
 		if (PLAYER_TYPE == PlayerType.TEACHER) {
-			return new TeacherMenu (this.msgHandler, invoker);
+			return new TeachePanel (this.msgHandler);
 		}
 		else if (PLAYER_TYPE == PlayerType.STUDENT) {
-			return new StudentMenu (this.msgHandler, invoker);
+			return new StudentPanel (this.msgHandler);
 		}
-		
+
 		return null;
 	}
 
 	public DynamicTree getDynamicTree () {
 		return this.tree.getDynamicTree ();
 	}
-	
+
 	public DialogueTree getDialogueTree () {
 		return this.tree;
 	}
@@ -128,13 +131,14 @@ public class GameEngine {
 		this.treeSaved = true;
 	}
 
-	public DialogueNode readTree () {
+	public DialogueNode readTree (File file) {
 		XmlReader reader = new XmlReader (this.msgHandler);
-		return reader.ReadTree ("tree.xml");
+		return reader.ReadTreeRoot (file);
 	}
 
 	public void stopGame () {
 		this.tree.getDynamicTree ().clear ();
+		this.map.clear ();
 		this.saveTree ();
 	}
 
@@ -223,7 +227,7 @@ public class GameEngine {
 			}
 		});
 
-		msgHandler.registerSendingMessageListener (MessageTag.START_GAME,  new MessageListener () {
+		msgHandler.registerSendingMessageListener (MessageTag.START_GAME, new MessageListener () {
 			@Override
 			public void messageReceived (Message msg) {
 				DialogueNode partialNode = (DialogueNode) msg.data;
@@ -232,8 +236,7 @@ public class GameEngine {
 				client.sendData (MessageTag.RESPONSE, partialNode);
 			}
 		});
-		msgHandler.registerSendingMessageListener (MessageTag.STOP_GAME, defaultSend);
-		msgHandler.registerSendingMessageListener (MessageTag.EXIT, defaultSend);
+
 		msgHandler.registerSendingMessageListener (MessageTag.SKIP_TURN, new MessageListener () {
 			@Override
 			public void messageReceived (Message msg) {
@@ -242,5 +245,17 @@ public class GameEngine {
 				client.sendData (msg);
 			}
 		});
+
+		msgHandler.registerSendingMessageListener (MessageTag.LOAD_TREE, new MessageListener () {
+			@Override
+			public void messageReceived (Message msg) {
+				tree.setRoot (readTree ((File) msg.data));
+				//update map
+			}
+		});
+
+		msgHandler.registerSendingMessageListener (MessageTag.STOP_GAME, defaultSend);
+		msgHandler.registerSendingMessageListener (MessageTag.EXIT, defaultSend);
+
 	}
 }

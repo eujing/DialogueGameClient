@@ -12,9 +12,9 @@ public class DialogueTree {
 	private DialogueNode root;
 	private ArrayList<DialogueTreeChangeListener> listeners;
 
-	public DialogueTree (GameEngine gEngine) {
+	public DialogueTree () {
 		this.listeners = new ArrayList<> ();
-		this.dTree = new DynamicTree (gEngine);
+		this.dTree = new DynamicTree ();
 		this.addChangeListener (new DialogueTreeChangeListener () {
 			@Override
 			public void treeChanged (DialogueNode parent, DialogueNode newNode) {
