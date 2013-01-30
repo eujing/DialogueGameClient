@@ -17,6 +17,7 @@ import Mapping.DialogueMap;
 import Networking.Client;
 import java.awt.Image;
 import java.io.File;
+import java.util.Calendar;
 import java.util.LinkedList;
 import javax.swing.ImageIcon;
 import javax.swing.JPanel;
@@ -72,8 +73,7 @@ public class GameEngine {
 		this.tree.addDialogueNode (node);
 
 		if (this.mostRecent.size () >= this.nPlayers) {
-			node.setIsMostRecent (false);
-			this.mostRecent.pop ();
+			this.mostRecent.pop ().setIsMostRecent (false);
 		}
 
 		node.setIsMostRecent (true);
@@ -127,7 +127,7 @@ public class GameEngine {
 	}
 
 	public void saveTree () {
-		XmlWriter.WriteTree ("tree.xml", this.tree.getRootDialogueNode ());
+		XmlWriter.WriteTree ("DialogueTree-" + Calendar.getInstance ().getTimeInMillis () + ".xml", this.tree.getRootDialogueNode ());
 		this.treeSaved = true;
 	}
 

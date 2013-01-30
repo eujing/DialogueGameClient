@@ -14,6 +14,7 @@ import com.mxgraph.util.mxEventSource.mxIEventListener;
 import com.mxgraph.view.mxGraph;
 import com.mxgraph.view.mxGraphSelectionModel;
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.util.HashMap;
 import javax.swing.JPanel;
@@ -86,10 +87,9 @@ public class DialogueMap extends JPanel {
 		Object defaultParent = this.graph.getDefaultParent ();
 		try {
 			mxCell parentVertex = this.vertexMap.get (parent);
-			mxCell childVertex = (mxCell) this.graph.insertVertex (defaultParent, null, newNode, 100, 100, 80, 30);
+			mxCell childVertex = (mxCell) this.graph.insertVertex (defaultParent, null, newNode, 0, 0, 80, 30);
 			this.vertexMap.put (newNode, childVertex);
 			childVertex.setValue (newNode);
-
 
 			if (parent != null) {
 				this.graph.insertEdge (defaultParent, null, newNode.type.toString (), parentVertex, childVertex);
@@ -106,7 +106,6 @@ public class DialogueMap extends JPanel {
 			this.layout.execute (this.graph.getDefaultParent ());
 		}
 		finally {
-
 			this.graph.getModel ().endUpdate ();
 		}
 	}
@@ -129,20 +128,31 @@ public class DialogueMap extends JPanel {
 
 		model.beginUpdate ();
 
+		Logger.logDebug ("n cells: " + graph.getChildCells (this.graph.getDefaultParent ()).length);
 		try {
+			//this.graph.removeCells (this.graph.getChildCells (this.graph.getDefaultParent (), true, true));
 			for (Object v : this.graph.getChildCells (this.graph.getDefaultParent ())) {
 				model.remove (v);
 			}
 			for (Object e : this.graph.getChildEdges (this.graph.getDefaultParent ())) {
 				model.remove (e);
 			}
+			
+			this.vertexMap.clear ();
+			
+			this.graphComponent.refresh ();
+			this.remove (this.graphComponent);
+			this.revalidate ();
+			this.repaint ();
+			//this.graphComponent = new mxGraphComponent (this.graph);
+			//this.add (this.graphComponent);
+		}
+		catch (Exception ex) {
+			Logger.logException ("DialogueMap::clear", ex);
 		}
 		finally {
 			model.endUpdate ();
-			this.graph.removeCells (this.graph.getChildVertices (this.graph.getDefaultParent ()));
-			this.graphComponent.refresh ();
-			this.vertexMap.clear ();
-			this.repaint ();
+			Logger.logDebug ("n cells: " + graph.getChildCells (this.graph.getDefaultParent ()).length);	
 		}
 	}
 }
