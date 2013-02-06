@@ -1,22 +1,25 @@
 package Mapping;
 
 import Core.DialogueNode;
+import Core.FileReader;
+import Core.GamePanel;
 import Core.Logger;
 import Game.DialogueTree;
 import Game.DialogueTreeChangeListener;
 import com.mxgraph.layout.mxFastOrganicLayout;
 import com.mxgraph.model.mxCell;
-import com.mxgraph.model.mxGraphModel;
 import com.mxgraph.swing.mxGraphComponent;
+import com.mxgraph.swing.view.mxInteractiveCanvas;
 import com.mxgraph.util.mxEvent;
 import com.mxgraph.util.mxEventObject;
 import com.mxgraph.util.mxEventSource.mxIEventListener;
 import com.mxgraph.view.mxGraph;
 import com.mxgraph.view.mxGraphSelectionModel;
 import java.awt.BorderLayout;
-import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Rectangle;
 import java.util.HashMap;
+import javax.swing.ImageIcon;
 import javax.swing.JPanel;
 
 public class DialogueMap extends JPanel {
@@ -27,26 +30,17 @@ public class DialogueMap extends JPanel {
 	private HashMap<DialogueNode, mxCell> vertexMap;
 
 	public DialogueMap (DialogueTree tree) {
-		this.graph = new mxGraph () {
-			@Override
-			public String convertValueToString (Object cell) {
-				if (cell instanceof mxCell) {
-					Object value = ((mxCell) cell).getValue ();
-					if (value instanceof DialogueNode) {
-						return ((DialogueNode) value).text;
-					}
-					else if (value instanceof String) {
-						return value.toString ();
-					}
-				}
-
-				return cell.toString ();
-			}
-		};
+		super (new BorderLayout ());
+		this.graph = new DialogueGraph ();
+		this.graph.setCellsEditable (false);
 
 		this.vertexMap = new HashMap<> ();
-		this.setLayout (new BorderLayout ());
-		this.graphComponent = new mxGraphComponent (this.graph);
+		this.graphComponent = new mxGraphComponent (this.graph) {
+			@Override
+			public mxInteractiveCanvas createCanvas () {
+				return new DialogueCanvas (this);
+			}
+		};
 		this.add (this.graphComponent, BorderLayout.CENTER);
 		this.setVisible (true);
 
@@ -76,9 +70,7 @@ public class DialogueMap extends JPanel {
 		});
 
 		this.layout = new mxFastOrganicLayout (this.graph);
-		this.layout.setForceConstant (200);
-		this.layout.setDisableEdgeStyle (false);
-
+		this.layout.setForceConstant (150);
 	}
 
 	public void update (DialogueNode parent, DialogueNode newNode) {
@@ -87,12 +79,15 @@ public class DialogueMap extends JPanel {
 		Object defaultParent = this.graph.getDefaultParent ();
 		try {
 			mxCell parentVertex = this.vertexMap.get (parent);
-			mxCell childVertex = (mxCell) this.graph.insertVertex (defaultParent, null, newNode, 0, 0, 80, 30);
+			mxCell childVertex = (mxCell) this.graph.insertVertex (defaultParent, null, newNode, this.getWidth () / 2, this.getHeight () / 2, 80, 30);
 			this.vertexMap.put (newNode, childVertex);
 			childVertex.setValue (newNode);
 
-			if (parent != null) {
-				this.graph.insertEdge (defaultParent, null, newNode.type.toString (), parentVertex, childVertex);
+			if (parent == null) {
+				childVertex.setStyle ("fillColor=red");
+			}
+			else {
+				this.graph.insertEdge (defaultParent, null, newNode.type.toString (), childVertex, parentVertex);
 			}
 		}
 		finally {
@@ -114,45 +109,53 @@ public class DialogueMap extends JPanel {
 		Dimension graphSize = this.graphComponent.getGraphControl ().getSize ();
 		Dimension viewPortSize = this.graphComponent.getViewport ().getSize ();
 
+		//Zoom to fit
 		if (graphSize.width > 0 && graphSize.height > 0) {
-			double scaleWidth = (double) viewPortSize.width / (double) graphSize.width;
-			double scaleHeight = (double) viewPortSize.height / (double) graphSize.height;
-			this.graphComponent.zoomTo (scaleWidth > scaleHeight ? scaleWidth : scaleHeight, true);
+			double scaleWidth = viewPortSize.getWidth () / graphSize.getWidth ();
+			double scaleHeight = viewPortSize.getHeight () / graphSize.getHeight ();
+			this.graphComponent.zoom (scaleWidth < scaleHeight ? scaleWidth : scaleHeight);
 		}
 
-		this.repaint ();
+	}
+
+	public void scrollToCenter () {
+		Dimension graphSize = this.graphComponent.getGraphControl ().getSize ();
+		Dimension viewPortSize = this.graphComponent.getViewport ().getSize ();
+
+		int x = graphSize.width / 2 - viewPortSize.width / 2;
+		int y = graphSize.height / 2 - viewPortSize.height / 2;
+		int w = viewPortSize.width;
+		int h = viewPortSize.height;
+		this.graphComponent.scrollRectToVisible (new Rectangle (x, y, w, h));
 	}
 
 	public void clear () {
-		mxGraphModel model = (mxGraphModel) this.graph.getModel ();
-
-		model.beginUpdate ();
-
-		Logger.logDebug ("n cells: " + graph.getChildCells (this.graph.getDefaultParent ()).length);
+		graph.getModel ().beginUpdate ();
 		try {
-			//this.graph.removeCells (this.graph.getChildCells (this.graph.getDefaultParent (), true, true));
-			for (Object v : this.graph.getChildCells (this.graph.getDefaultParent ())) {
-				model.remove (v);
-			}
-			for (Object e : this.graph.getChildEdges (this.graph.getDefaultParent ())) {
-				model.remove (e);
-			}
-			
-			this.vertexMap.clear ();
-			
-			this.graphComponent.refresh ();
-			this.remove (this.graphComponent);
-			this.revalidate ();
-			this.repaint ();
-			//this.graphComponent = new mxGraphComponent (this.graph);
-			//this.add (this.graphComponent);
+			graph.removeCells (graph.getChildCells (graph.getDefaultParent (), true, true));
+			vertexMap.clear ();
 		}
 		catch (Exception ex) {
 			Logger.logException ("DialogueMap::clear", ex);
 		}
 		finally {
-			model.endUpdate ();
-			Logger.logDebug ("n cells: " + graph.getChildCells (this.graph.getDefaultParent ()).length);	
+			graph.getModel ().endUpdate ();
+		}
+	}
+
+	public void loadTree (DialogueTree tree) {
+		DialogueNode rootNode = tree.getRootDialogueNode ();
+		update (null, rootNode);
+		recurseAddVertex (rootNode);
+		arrange ();
+		autoScale ();
+		this.graphComponent.scrollCellToVisible (vertexMap.get (rootNode));
+	}
+
+	public void recurseAddVertex (DialogueNode parent) {
+		for (DialogueNode childNode : parent.childrenNodes) {
+			update (parent, childNode);
+			recurseAddVertex (childNode);
 		}
 	}
 }

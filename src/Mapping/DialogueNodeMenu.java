@@ -12,7 +12,7 @@ public class DialogueNodeMenu extends JPopupMenu {
 	public DialogueNodeMenu (DialogueNode node, mxGeometry geom, mxGraphComponent graphComponent) {
 		this.setLayout (new GridLayout (5, 1));
 		this.addLabel ("id = " + node.id);
-		this.addLabel ("parentId = " + node.parentId);
+		this.addLabel ("parentId = " + node.parentId); 
 		this.addLabel ("playerName = " + node.playerName);
 		this.addLabel ("text = " + node.text);
 		this.addLabel ("type = " + node.type);

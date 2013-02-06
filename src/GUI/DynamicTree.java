@@ -53,7 +53,6 @@ public class DynamicTree extends JPanel {
 
 	public void clear () {
 		if (this.root != null) {
-			//this.root.removeAllChildren();
 			this.root = null;
 		}
 

@@ -44,5 +44,6 @@ public class TeachePanel extends DefaultPanel {
 		this.addWithinPanel (this, this.bStart);
 		this.addWithinPanel (this, this.bStop);
 		this.addWithinPanel (this, getLoadTreeButton ());
+		this.addWithinPanel (this, this.getSaveTreeButton ());
 	}
 }

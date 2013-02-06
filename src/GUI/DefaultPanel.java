@@ -4,7 +4,7 @@ import Core.ExtensionFileFilter;
 import Core.Message;
 import Core.MessageHandler;
 import Core.MessageTag;
-import Game.DialogueTree;
+import Game.GameEngine;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.FlowLayout;
@@ -37,16 +37,29 @@ public class DefaultPanel extends JPanel {
 			@Override
 			public void actionPerformed (ActionEvent e) {
 				JFileChooser fileChooser = new JFileChooser ();
+				fileChooser.setCurrentDirectory (GameEngine.currentDir);
 				fileChooser.setFileFilter (new ExtensionFileFilter (new String[] {"xml"}));
 				switch (fileChooser.showOpenDialog (null)) {
 					case JFileChooser.APPROVE_OPTION: {
-						DialogueTree tree = new DialogueTree ();
 						msgHandler.submitSendingMessage (new Message (MessageTag.LOAD_TREE, "", fileChooser.getSelectedFile ()));
 					}
 				}
 			}
 		});
 
+		return button;
+	}
+	
+	protected JButton getSaveTreeButton () {
+		JButton button = new JButton ("Save Tree");
+		
+		button.addActionListener (new ActionListener () {
+			@Override
+			public void actionPerformed (ActionEvent e) {
+				msgHandler.submitSendingMessage (new Message (MessageTag.SAVE_TREE, "", ""));
+			}
+		});
+		
 		return button;
 	}
 }

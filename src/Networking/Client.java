@@ -61,9 +61,9 @@ public class Client {
 						}
 					}
 				}
-				catch (IOException | ClassNotFoundException ex) {
+				catch (Exception ex) {
 					Logger.log ("Disconnecting");
-					Logger.logDebug (ex.getMessage () + " " + ex.getCause ());
+					Logger.logException ("Client::createListenThread", ex);
 				}
 				finally {
 					disconnect ();
@@ -86,7 +86,7 @@ public class Client {
 			this.outToServer.close ();
 		}
 		catch (Exception ex) {
-			Logger.logDebug ("disconnect: " + ex.getMessage ());
+			Logger.logException ("Client::disconnect", ex);
 		}
 		finally {
 			System.exit (0);
@@ -99,8 +99,7 @@ public class Client {
 			this.outToServer.flush ();
 		}
 		catch (Exception ex) {
-			Logger.logDebug (ex.getMessage ());
-			ex.printStackTrace ();
+			Logger.logException ("Client::sendData", ex);
 		}
 	}
 

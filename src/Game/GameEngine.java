@@ -20,6 +20,7 @@ import java.io.File;
 import java.util.Calendar;
 import java.util.LinkedList;
 import javax.swing.ImageIcon;
+import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 
 public class GameEngine {
@@ -34,6 +35,7 @@ public class GameEngine {
 		STUDENT, TEACHER
 	};
 	public static PlayerType PLAYER_TYPE = PlayerType.STUDENT;
+	public static final File currentDir = new File (System.getProperty ("user.dir"));
 	private String playerName;
 	private ImageIcon playerAvatar;
 	private Client client;
@@ -118,6 +120,10 @@ public class GameEngine {
 		return this.tree;
 	}
 
+	public DialogueMap getDialogueMap () {
+		return this.map;
+	}
+
 	public WaitIndicatorLayer getLayerUI () {
 		return this.waitIndicatorLayer;
 	}
@@ -127,8 +133,13 @@ public class GameEngine {
 	}
 
 	public void saveTree () {
-		XmlWriter.WriteTree ("DialogueTree-" + Calendar.getInstance ().getTimeInMillis () + ".xml", this.tree.getRootDialogueNode ());
-		this.treeSaved = true;
+		JFileChooser fileChooser = new JFileChooser ();
+		fileChooser.setCurrentDirectory (currentDir);
+		fileChooser.setSelectedFile (new File ("DialogueMap - " + Calendar.getInstance ().getTimeInMillis () + ".xml"));
+		if (fileChooser.showSaveDialog (null) == JFileChooser.APPROVE_OPTION) {
+			XmlWriter.WriteTree (fileChooser.getSelectedFile (), this.tree.getRootDialogueNode ());
+			this.treeSaved = true;
+		}
 	}
 
 	public DialogueNode readTree (File file) {
@@ -137,9 +148,9 @@ public class GameEngine {
 	}
 
 	public void stopGame () {
+		DialogueNode.count = 1;
 		this.tree.getDynamicTree ().clear ();
 		this.map.clear ();
-		this.saveTree ();
 	}
 
 	private void registerReceivingListeners (final MessageHandler msgHandler) {
@@ -249,8 +260,18 @@ public class GameEngine {
 		msgHandler.registerSendingMessageListener (MessageTag.LOAD_TREE, new MessageListener () {
 			@Override
 			public void messageReceived (Message msg) {
-				tree.setRoot (readTree ((File) msg.data));
-				//update map
+				tree.getDynamicTree ().clear ();
+				map.clear ();
+				DialogueNode rootNode = readTree ((File) msg.data);
+				tree.setRoot (rootNode);
+				map.loadTree (tree);
+			}
+		});
+		
+		msgHandler.registerSendingMessageListener (MessageTag.SAVE_TREE, new MessageListener () {
+			@Override
+			public void messageReceived (Message msg) {
+				saveTree ();
 			}
 		});
 

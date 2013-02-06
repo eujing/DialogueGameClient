@@ -26,6 +26,8 @@ public class StudentPanel extends DefaultPanel  {
 		});
 		
 		this.addWithinPanel (this, this.bSkip);
+		this.addWithinPanel (this, this.getLoadTreeButton ());
+		this.addWithinPanel (this, this.getSaveTreeButton ());
 	}
 }
 
