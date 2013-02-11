@@ -1,7 +1,6 @@
 package GUI;
 
 import Core.DialogueNode;
-import Core.GamePanel;
 import java.awt.Color;
 import java.awt.Component;
 import javax.swing.JTree;

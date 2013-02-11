@@ -3,13 +3,12 @@ package GUI;
 import Core.Message;
 import Core.MessageHandler;
 import Core.MessageTag;
-import Core.ResponseMenu;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.JButton;
 
-public class TeachePanel extends DefaultPanel {
+public class TeachePanel extends UserPanel {
 
 	private ResponseMenu responseMenu;
 	private JButton bStart;
@@ -43,7 +42,8 @@ public class TeachePanel extends DefaultPanel {
 
 		this.addWithinPanel (this, this.bStart);
 		this.addWithinPanel (this, this.bStop);
-		this.addWithinPanel (this, getLoadTreeButton ());
+		this.addWithinPanel (this, this.getSkipButton());
+		this.addWithinPanel (this, this.getLoadTreeButton ());
 		this.addWithinPanel (this, this.getSaveTreeButton ());
 	}
 }

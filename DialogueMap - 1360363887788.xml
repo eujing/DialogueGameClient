@@ -1,0 +1,1 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><dialogue><node><id>1</id><avatar>./Avatars/Teacher.png</avatar><name>Teacher</name><text>test a</text><type>QUESTION</type><node><id>2</id><avatar>./Avatars/Teacher.png</avatar><name>Teacher</name><text>test b</text><type>INFORMATION</type></node></node></dialogue>
