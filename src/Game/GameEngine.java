@@ -26,6 +26,7 @@ import javax.swing.JPanel;
 
 public class GameEngine {
 
+	public static final String NO_AVATAR = "/Resources/noAvatar.jpg";
 	private static final String WAIT_ANIMATION = "/Resources/ActivityIndicator.gif";
 	private static final String TURN_NOTIFICATION = "/Resources/ding.wav";
 	private static final String IP_ADDRESS = "127.0.0.1";

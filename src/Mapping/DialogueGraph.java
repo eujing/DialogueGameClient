@@ -1,12 +1,7 @@
 package Mapping;
 
 import Core.DialogueNode;
-import com.mxgraph.canvas.mxICanvas;
-import com.mxgraph.canvas.mxImageCanvas;
 import com.mxgraph.model.mxCell;
-import com.mxgraph.util.mxRectangle;
-import com.mxgraph.util.mxUtils;
-import com.mxgraph.view.mxCellState;
 import com.mxgraph.view.mxGraph;
 
 public class DialogueGraph extends mxGraph {

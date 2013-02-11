@@ -67,7 +67,7 @@ public class GameFrame extends JFrame {
 				}
 			}
 			default: {
-				return new ImageIcon(FileIO.getImage (this.getClass().getResource(GamePanel.NO_AVATAR), 64, 64));
+				return new ImageIcon(FileIO.getImage (this.getClass().getResource(GameEngine.NO_AVATAR), 64, 64));
 			}
 		}
 	}

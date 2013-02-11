@@ -2,14 +2,12 @@ package GUI;
 
 import Core.DialogueNode;
 import Core.FileIO;
-import GUI.ResponseMenu;
+import Game.GameEngine;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.ImageIcon;
 
 public class GamePanel extends javax.swing.JPanel {
-
-	public static final String NO_AVATAR = "/Resources/noAvatar.jpg";
 	private ResponseMenu responseMenu;
 	
 	public GamePanel(final DialogueNode dNode) {
@@ -18,7 +16,7 @@ public class GamePanel extends javax.swing.JPanel {
 		this.responseMenu = new ResponseMenu(dNode, bRespond);
 		lblName.setText(dNode.playerName);
 		if (dNode.avatar == null) {
-			ImageIcon img = new ImageIcon (FileIO.getImage (this.getClass ().getResource (NO_AVATAR), 64, 64));
+			ImageIcon img = new ImageIcon (FileIO.getImage (this.getClass ().getResource (GameEngine.NO_AVATAR), 64, 64));
 			avatar.setIcon (img);
 		}
 		else {
