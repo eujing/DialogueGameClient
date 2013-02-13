@@ -2,6 +2,8 @@ package GUI;
 
 import Core.DialogueNode;
 import java.awt.BorderLayout;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTree;
@@ -21,17 +23,19 @@ public class DynamicTree extends JPanel {
 
 	public DynamicTree () {
 		initialize ();
-
-		this.tree.addTreeSelectionListener (new TreeSelectionListener () {
+		
+		this.tree.addMouseListener (new MouseAdapter () {
 			@Override
-			public void valueChanged (TreeSelectionEvent e) {
-				final TreePath path = e.getNewLeadSelectionPath ();
-				SwingUtilities.invokeLater (new Runnable () {
+			public void mousePressed (MouseEvent e) {
+				final TreePath path = tree.getPathForLocation (e.getX (), e.getY ());
+				if (path != null) {
+					SwingUtilities.invokeLater (new Runnable () {
 					@Override
 					public void run () {
 						tree.startEditingAtPath (path);
 					}
 				});
+				}
 			}
 		});
 	}

@@ -22,6 +22,8 @@ public class GamePanel extends javax.swing.JPanel {
 		else {
 			avatar.setIcon (dNode.avatar);
 		}
+		taText.setEditable (false);
+		taText.setLineWrap(true);
 		taText.setText(dNode.text);
 		lblType.setText(dNode.type.toString());
 
