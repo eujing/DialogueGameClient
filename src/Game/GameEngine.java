@@ -29,8 +29,6 @@ public class GameEngine {
 	public static final String NO_AVATAR = "/Resources/noAvatar.jpg";
 	private static final String WAIT_ANIMATION = "/Resources/ActivityIndicator.gif";
 	private static final String TURN_NOTIFICATION = "/Resources/ding.wav";
-	private static final String IP_ADDRESS = "127.0.0.1";
-	private static final short PORT = 3000;
 
 	public enum PlayerType {
 
@@ -50,7 +48,7 @@ public class GameEngine {
 	private boolean treeSaved;
 	private SoundPlayer turnNotification;
 
-	public GameEngine(String playerName, ImageIcon playerAvatar) {
+	public GameEngine(String playerName, ImageIcon playerAvatar, String ipAddress, short port) {
 		this.playerName = playerName;
 		this.playerAvatar = playerAvatar;
 		this.nPlayers = 0;
@@ -60,7 +58,7 @@ public class GameEngine {
 		this.msgHandler = new MessageHandler();
 		this.registerReceivingListeners(this.msgHandler);
 		this.registerSendingListeners(this.msgHandler);
-		this.client = new Client(this.msgHandler, playerName, IP_ADDRESS, PORT);
+		this.client = new Client(this.msgHandler, playerName, ipAddress, port);
 		this.mostRecent = new LinkedList<>();
 		this.treeSaved = true;
 		this.turnNotification = new SoundPlayer(TURN_NOTIFICATION);

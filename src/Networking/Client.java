@@ -4,7 +4,6 @@ import Core.Logger;
 import Core.Message;
 import Core.MessageHandler;
 import Core.MessageTag;
-import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
@@ -24,7 +23,7 @@ public class Client {
 			this.clientSocket = new Socket (ipAddress, port);
 			this.outToServer = new ObjectOutputStream (this.clientSocket.getOutputStream ());
 			this.outToServer.flush ();
-			this.inFromServer = new ObjectInputStream (this.clientSocket.getInputStream ());
+			this.inFromServer =null;
 			this.msgHandler = msgHandler;
 
 			//Send info here
@@ -49,6 +48,7 @@ public class Client {
 			public void run () {
 				try {
 					Logger.logDebug ("Listening...");
+					inFromServer = new ObjectInputStream (clientSocket.getInputStream ());
 					while (true) {
 						msg = Message.cast (inFromServer.readObject ());
 
