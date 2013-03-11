@@ -13,9 +13,13 @@ import com.mxgraph.view.mxGraph;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.HashMap;
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 public class DialogueMap extends JPanel {
@@ -37,7 +41,8 @@ public class DialogueMap extends JPanel {
 		this.graphComponent.getGraphControl().addMouseListener(dragListener);
 		this.graphComponent.getGraphControl().addMouseMotionListener(dragListener);
 		this.graphComponent.getGraphControl().addMouseWheelListener(dragListener);
-		this.add(this.graphComponent, BorderLayout.CENTER);
+		this.add (this.graphComponent, BorderLayout.CENTER);
+		this.add (this.createZoomPanel (), BorderLayout.PAGE_END);
 		this.setVisible(true);
 		
 		tree.addChangeListener(new DialogueTreeChangeListener() {
@@ -50,6 +55,32 @@ public class DialogueMap extends JPanel {
 		});
 		this.layout = new mxFastOrganicLayout(this.graph);
 		this.layout.setForceConstant(200);
+	}
+	
+	private JPanel createZoomPanel () {
+		JPanel panel = new JPanel ();
+		
+		JButton bIn = new JButton ("+");
+		bIn.addActionListener(new ActionListener () {
+			@Override
+			public void actionPerformed (ActionEvent e) {
+				graphComponent.zoomIn();
+			}
+		});
+		
+		JButton bOut = new JButton ("-");
+		bOut.addActionListener(new ActionListener () {
+			@Override
+			public void actionPerformed (ActionEvent e) {
+				graphComponent.zoomOut();
+			}
+		});
+		
+		panel.add (new JLabel ("Zoom"));
+		panel.add (bIn);
+		panel.add (bOut);
+		
+		return panel;
 	}
 	
 	public void update(DialogueNode parent, DialogueNode newNode) {
