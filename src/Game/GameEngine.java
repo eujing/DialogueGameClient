@@ -73,6 +73,7 @@ public class GameEngine {
 
 	public void addDialogueNode(DialogueNode node) {
 		this.tree.addDialogueNode(node);
+		DialogueNode.count++;
 
 		if (this.mostRecent.size() >= this.nPlayers) {
 			this.mostRecent.pop().setIsMostRecent(false);
@@ -203,8 +204,7 @@ public class GameEngine {
 
 				stopGame ();
 				setRoot(rootNode);
-				addDialogueNode(rootNode);
-				DialogueNode.count++;
+				addDialogueNode(rootNode);	
 			}
 		});
 
@@ -214,7 +214,6 @@ public class GameEngine {
 				DialogueNode node = (DialogueNode) msg.data;
 				node.msgHandler = msgHandler;
 				addDialogueNode(node);
-				DialogueNode.count++;
 			}
 		});
 

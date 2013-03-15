@@ -35,14 +35,15 @@ public class ResponseMenu extends JPopupMenu {
 	private JButton bSubmit;
 
 	public ResponseMenu(final MessageHandler msgHandler, final Component invoker) {
-		init(ResponseType.SEED, invoker);
+		init(invoker);
+		setSeedMenu ();
 
 		this.bSubmit.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if (lastResponse != null && starters.getSelectedIndex() != -1) {
-					String text = starters.getSelectedValue().toString() + " " + tfText.getText();
-					DialogueNode rootNode = new DialogueNode(0, "Teacher", text, lastResponse, msgHandler);
+				String text = tfText.getText();
+				if (text.length() > 0) {
+					DialogueNode rootNode = new DialogueNode(0, "Teacher", text, ResponseType.SEED, msgHandler);
 					msgHandler.submitSendingMessage(new Message(MessageTag.START_GAME, "Teacher", rootNode));
 				}
 			}
@@ -50,8 +51,9 @@ public class ResponseMenu extends JPopupMenu {
 	}
 
 	public ResponseMenu(final DialogueNode dNode, final Component invoker) {
-		init(dNode.type, invoker);
-
+		init(invoker);
+		setRegularMenu (dNode.type);
+		
 		this.bSubmit.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -62,18 +64,28 @@ public class ResponseMenu extends JPopupMenu {
 				}
 			}
 		});
-
-
 	}
 
-	private void init(ResponseType type, Component invoker) {
+	private void init(Component invoker) {
 		this.invoker = invoker;
+		this.tfText = new JTextField();
+		this.bSubmit = new JButton("Submit");
+	}
+
+	private void setSeedMenu() {
+		this.setLayout(new FlowLayout());
+		this.tfText.setPreferredSize(new Dimension(400, 25));
+		this.add(new JLabel("Seed:"));
+		this.add(this.tfText);
+		this.add(this.bSubmit);
+	}
+
+	private void setRegularMenu(ResponseType type) {
 		this.setLayout(new GridLayout(1, 3));
 		this.lastResponse = null;
 		this.starters = new JList();
-		this.tfText = new JTextField();
+
 		this.tfText.setPreferredSize(new Dimension(200, 25));
-		this.bSubmit = new JButton("Submit");
 
 		JPanel buttonPanel = createButtonPanel(type);
 		JPanel startersPanel = createStartersPanel();
@@ -113,7 +125,7 @@ public class ResponseMenu extends JPopupMenu {
 			this.buttons[i].addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					lastResponse = ResponseType.valueOf (b.getText ().toUpperCase ());
+					lastResponse = ResponseType.valueOf(b.getText().toUpperCase());
 					starters.setModel(responseModel);
 				}
 			});
@@ -142,12 +154,12 @@ public class ResponseMenu extends JPopupMenu {
 
 		return rightPanel;
 	}
-	
-	public void showMenu () {
+
+	public void showMenu() {
 		this.show(invoker, 0, invoker.getHeight());
 	}
-	
-	public void hideMenu () {
-		setVisible (false);
+
+	public void hideMenu() {
+		setVisible(false);
 	}
 }
