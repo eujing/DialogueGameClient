@@ -45,6 +45,9 @@ public class GameFrame extends JFrame {
 		String name = "";
 		if (GameEngine.PLAYER_TYPE == PlayerType.STUDENT) {
 			name = JOptionPane.showInputDialog (null, "Enter name:");
+			if (name == null) {
+				name = "Anonymous";
+			}
 		}
 		else if (GameEngine.PLAYER_TYPE == PlayerType.TEACHER) {
 			name = "Teacher";

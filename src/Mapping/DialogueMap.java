@@ -109,17 +109,20 @@ public class DialogueMap extends JPanel {
 			mxCell childVertex = (mxCell) this.graph.insertVertex(defaultParent, null, newNode, this.getWidth() / 2, this.getHeight() / 2, 180, 80);
 			this.vertexMap.put(newNode, childVertex);
 			childVertex.setValue(newNode);
-			childVertex.setStyle("shape=label;image=file:/" + defaultFilePath.getAbsolutePath() + ";"
+			String style = "shape=label;image=file:/" + defaultFilePath.getAbsolutePath() + ";"
 					+ "perimeter=rectanglePerimeter;fontStyle=1;"
 					+ "align=center;verticalAlign=middle;"
 					+ "imageAlign=left;imageWidth=64;imageHeight=64;rounded=1;"
-					+ "shadow=1;glass=1;");
+					+ "shadow=1;glass=1;";
 			
 			if (parent == null) {
-				//childVertex.setStyle("fillColor=red");
+				style += "fillColor=pink;";
 			} else {
 				this.graph.insertEdge(defaultParent, null, newNode.type.getVerb(), childVertex, parentVertex);
 			}
+			
+			childVertex.setStyle(style);
+			
 		} catch (Exception ex) {
 			Logger.logException("DialogueMap::update", ex);
 		} finally {

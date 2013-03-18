@@ -25,8 +25,11 @@ public class DialogueMouseListener implements MouseListener, MouseMotionListener
 
 	@Override
 	public void mousePressed(MouseEvent e) {
+		//Drag scrolling
 		this.pressed = e.getPoint();
 		this.rect = this.graphComponent.getViewport().getVisibleRect();
+		
+		//Cell selection
 		mxCell cell = (mxCell) this.graphComponent.getCellAt(this.pressed.x, this.pressed.y);
 		if (cell != null) {
 			Object value = cell.getValue();
@@ -51,6 +54,7 @@ public class DialogueMouseListener implements MouseListener, MouseMotionListener
 
 	@Override
 	public void mouseWheelMoved (MouseWheelEvent e) {
+		//Zoom
 		if (e.getWheelRotation() < 0) {
 			this.graphComponent.zoomIn();
 		}

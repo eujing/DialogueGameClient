@@ -3,6 +3,7 @@ package GUI;
 import Core.DialogueNode;
 import java.awt.Color;
 import java.awt.Component;
+import javax.swing.BorderFactory;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
@@ -31,9 +32,9 @@ public class DialogueNodeRenderer implements TreeCellRenderer {
 				DialogueNode node = (DialogueNode) value;
 				GamePanel gPanel = new GamePanel (node);
 				gPanel.setRespondEnabled (this.enabled);
-				
+				//gPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 				if (node.isMostRecent) {
-					gPanel.setBackground (Color.red);
+					gPanel.setBackground (Color.pink);
 				}
 				
 				comp = gPanel;
