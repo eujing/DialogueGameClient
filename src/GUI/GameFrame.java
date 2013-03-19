@@ -45,7 +45,7 @@ public class GameFrame extends JFrame {
 		String name = "";
 		if (GameEngine.PLAYER_TYPE == PlayerType.STUDENT) {
 			name = JOptionPane.showInputDialog (null, "Enter name:");
-			if (name == null) {
+			if (name == null || name.equals("")) {
 				name = "Anonymous";
 			}
 		}
@@ -156,20 +156,7 @@ public class GameFrame extends JFrame {
 				port = Short.parseShort (arg.replace ("-port=", ""));
 			}
 		}
-		/*if (args.length == 1) {
-			switch (args[0]) {
-				case "-student":
-					GameEngine.PLAYER_TYPE = PlayerType.STUDENT;
-					break;
-				case "-teacher":
-					GameEngine.PLAYER_TYPE = PlayerType.TEACHER;
-					break;
-				default:
-					if (args[0].startsWith ("-ip")) {
-						
-					}
-			}
-		}*/
+
 		Logger.log ("Server set to " + ipAddress + ":" + port + "...");
 		new GameFrame (ipAddress, port);
 	}

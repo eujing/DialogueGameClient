@@ -26,12 +26,8 @@ public class DialogueNodeEditor extends DefaultTreeCellEditor {
 		if (value instanceof DialogueNode) {
 			DialogueNode node = (DialogueNode) value;
 			GamePanel gPanel = new GamePanel (node);
-			gPanel.setBackground(Color.yellow);
 			gPanel.setRespondEnabled (this.enabled);
-			
-			if (node.isMostRecent) {
-				gPanel.setBackground (Color.pink);
-			}
+			gPanel.setBackground(Color.yellow);
 			
 			return gPanel;
 		}

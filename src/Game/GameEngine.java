@@ -288,6 +288,7 @@ public class GameEngine {
 				stopGame ();
 				DialogueNode rootNode = readTree((File) msg.data);
 				tree.setRoot(rootNode);
+				tree.getDynamicTree().setRespondEnabled(true);
 				map.loadTree(tree);
 			}
 		});

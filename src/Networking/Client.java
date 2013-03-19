@@ -7,6 +7,7 @@ import Core.MessageTag;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import javax.swing.JOptionPane;
 
 public class Client {
 	private String playerName;
@@ -36,6 +37,7 @@ public class Client {
 		}
 		catch (Exception ex) {
 			Logger.logException ("Client::Client", ex);
+			JOptionPane.showMessageDialog (null, "Could not connect to server\nCause -> " + ex.getMessage());
 			System.exit (0);
 		}
 	}

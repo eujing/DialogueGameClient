@@ -15,15 +15,18 @@ import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 
 public class ResponseMenu extends JPopupMenu {
 
@@ -38,7 +41,7 @@ public class ResponseMenu extends JPopupMenu {
 		init(invoker);
 		setSeedMenu ();
 
-		this.bSubmit.addActionListener(new ActionListener() {
+		ActionListener al = new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				String text = tfText.getText();
@@ -46,30 +49,43 @@ public class ResponseMenu extends JPopupMenu {
 					DialogueNode rootNode = new DialogueNode(0, "Teacher", text, ResponseType.SEED, msgHandler);
 					msgHandler.submitSendingMessage(new Message(MessageTag.START_GAME, "Teacher", rootNode));
 				}
+				hideMenu ();
 			}
-		});
+		};
+		this.bSubmit.addActionListener(al);
+		bindEnterKey (this.tfText, al);
 	}
 
 	public ResponseMenu(final DialogueNode dNode, final Component invoker) {
 		init(invoker);
 		setRegularMenu (dNode.type);
 		
-		this.bSubmit.addActionListener(new ActionListener() {
+		ActionListener al = new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (lastResponse != null && starters.getSelectedIndex() != -1) {
 					String text = starters.getSelectedValue().toString() + " " + tfText.getText();
 					DialogueNode partialNode = dNode.newChild("", text, lastResponse);
 					dNode.msgHandler.submitSendingMessage(new Message(MessageTag.RESPONSE, "", partialNode));
+					hideMenu ();
 				}
 			}
-		});
+		};
+		this.bSubmit.addActionListener(al);
+		bindEnterKey (this.tfText, al);
 	}
 
 	private void init(Component invoker) {
 		this.invoker = invoker;
 		this.tfText = new JTextField();
 		this.bSubmit = new JButton("Submit");
+	}
+	
+	private void bindEnterKey (JComponent c, ActionListener al) {
+		c.registerKeyboardAction(
+				al,
+				KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0, true),
+				JComponent.WHEN_FOCUSED);
 	}
 
 	private void setSeedMenu() {
